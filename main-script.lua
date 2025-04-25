@@ -459,14 +459,6 @@ local function InitializeFOV()
     FOV_Circle.Visible = Settings.FOVVisible
     FOV_Circle.Radius = Settings.AimFOV
 end
-local function teleport()
-teleport.MouseButton1Click:Connect(function()
-    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if root then
-        -- Vị trí cuối tùy map, đây chỉ là ví dụ
-        root.CFrame = CFrame.new(9999, 100, 0)
-    end
-end
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
     Lighting.Brightness = 2
