@@ -98,6 +98,7 @@ local AimbotTab = Window:CreateTab("Aimbot", 4483362458)
 local FullbrightTab = Window:CreateTab("Fullbright", 4483362458)
 local UtilityTab = Window:CreateTab("Utility", 4483362458)
 local ESPTab = Window:CreateTab("ESP", 4483362458)
+local TeleTab = Window:CreateTab("TELEPORT", 4483362458)
 local ChangelogsTab = Window:CreateTab("Changelogs", 4483362458)
 
 -- Функция для обработки смерти/возрождения персонажа
@@ -613,7 +614,13 @@ AimbotTab:CreateColorPicker({
         end
     end
 })
-
+TeleTab:CreateToggle({
+    Name = "The End",
+    CurrentValue = false,
+    Callback = function(Value)
+        Settings.teleport = Value
+    end,
+})
 FullbrightTab:CreateToggle({
     Name = "Enable Fullbright",
     CurrentValue = false,
