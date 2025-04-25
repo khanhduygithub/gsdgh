@@ -1,12 +1,11 @@
--- Đang tải giao diện Rayfield 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Đang tải giao diện KhanhDuyxHub 
 local scrVer = "0.5.2 STABLE"
 
 -- Tạo một cửa sổ 
-local Window = Rayfield:CreateWindow({
-    Name = "Dead Rails Script",
+local Window = KhanhDuyxHub:CreateWindow({
+    Name = "KhanhDuyxHub",
     LoadingTitle = "Script Loading",
-    LoadingSubtitle = "By Sanya",
+    LoadingSubtitle = "By KhanhDuy",
     ConfigurationSaving = {
         Enabled = false,
         FolderName = "UltraAimbot",
@@ -384,13 +383,7 @@ local function ToggleESP(enabled)
         end
     end
 end
-teleport.MouseButton1Click:Connect(function()
-    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if root then
-        -- Vị trí cuối tùy map, đây chỉ là ví dụ
-        root.CFrame = CFrame.new(9999, 100, 0)
-    end
-end)
+
 -- Функция для Anti-AFK
 local function ToggleAntiAFK(enabled)
     Settings.AntiAFK = enabled
@@ -403,7 +396,7 @@ local function ToggleAntiAFK(enabled)
             task.wait(1)
             game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
         end)
-        Rayfield:Notify({
+        KhanhDuyxHub:Notify({
             Title = "Anti-AFK",
             Content = "Enabled - You won't be kicked for being AFK",
             Duration = 3,
@@ -413,7 +406,7 @@ local function ToggleAntiAFK(enabled)
         if AntiAFKConnection then
             AntiAFKConnection:Disconnect()
             AntiAFKConnection = nil
-            Rayfield:Notify({
+            KhanhDuyxHub:Notify({
                 Title = "Anti-AFK",
                 Content = "Disabled",
                 Duration = 3,
@@ -452,7 +445,14 @@ local function SetFastProximityPrompt(enabled)
         end))
     end
 end
-
+local function teleport()
+teleport.MouseButton1Click:Connect(function()
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if root then
+        -- Vị trí cuối tùy map, đây chỉ là ví dụ
+        root.CFrame = CFrame.new(9999, 100, 0)
+    end
+end)
 -- Инициализация FOV круга
 local function InitializeFOV()
     if FOV_Circle then FOV_Circle:Remove() end
@@ -660,7 +660,7 @@ UtilityTab:CreateToggle({
     Callback = function(v) 
         Settings.AntiFall = v 
         if v then
-            Rayfield:Notify({
+            KhanhDuyxHub:Notify({
                 Title = "Anti-Fall",
                 Content = "Enabled - You will be teleported back if you fall below Y=-15",
                 Duration = 3,
@@ -1033,7 +1033,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 -- Включаем ручное прицеливание
                 Aiming = true
                 AutoAimAtNearestNPC()  -- Попытаемся найти цель
-                Rayfield:Notify({
+                KhanhDuyxHub:Notify({
                     Title = "Aimbot",
                     Content = LockedTarget and "Manual Aim: Target Locked" or "Manual Aim: No Target Found",
                     Duration = 2,
@@ -1043,7 +1043,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 -- Выключаем ручное прицеливание
                 Aiming = false
                 LockedTarget = nil
-                Rayfield:Notify({
+                KhanhDuyxHub:Notify({
                     Title = "Aimbot",
                     Content = "Manual Aim Disabled",
                     Duration = 2,
@@ -1051,7 +1051,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 })
             end
         elseif Settings.Enabled and not Settings.ManualAim then
-            Rayfield:Notify({
+            KhanhDuyxHub:Notify({
                 Title = "Aimbot",
                 Content = "Manual mode is disabled in settings",
                 Duration = 2,
@@ -1063,7 +1063,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     -- Bật chế độ tự động bắn 
     if input.KeyCode == Settings.ShootKey then
         Shooting = not Shooting
-        Rayfield:Notify({
+        KhanhDuyxHub:Notify({
             Title = "AutoShoot",
             Content = Shooting and "Enabled" or "Disabled",
             Duration = 2,
@@ -1079,7 +1079,7 @@ UpdateNPCList()ToggleESP(ESP.Enabled) -- Инициализируем ESP с т�
 
 
 -- Thông báo 
-Rayfield:Notify({
+KhanhDuyxHub:Notify({
     Title = "Script Loaded",
     Content = "Version: " .. scrVer,
     Duration = 5,
