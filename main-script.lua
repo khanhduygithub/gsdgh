@@ -83,7 +83,6 @@ local Settings = {
     FOVVisible = true,
     FOVFilled = false,
     fullbright = false,
-    teleport = false,
     FOVThickness = 2,
     FOVColor = Color3.fromRGB(255, 255, 255),
     AimKey = Enum.KeyCode.E,
@@ -99,7 +98,6 @@ local AimbotTab = Window:CreateTab("Aimbot", 4483362458)
 local FullbrightTab = Window:CreateTab("Fullbright", 4483362458)
 local UtilityTab = Window:CreateTab("Utility", 4483362458)
 local ESPTab = Window:CreateTab("ESP", 4483362458)
-local TeleTab = Window:CreateTab("TELEPORT", 4483362458)
 local ChangelogsTab = Window:CreateTab("Changelogs", 4483362458)
 
 -- Функция для обработки смерти/возрождения персонажа
@@ -459,6 +457,7 @@ local function InitializeFOV()
     FOV_Circle.Visible = Settings.FOVVisible
     FOV_Circle.Radius = Settings.AimFOV
 end
+
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
     Lighting.Brightness = 2
@@ -614,13 +613,7 @@ AimbotTab:CreateColorPicker({
         end
     end
 })
-TeleTab:CreateToggle({
-    Name = "Tp The End",
-    CurrentValue = false,
-    Callback = function(Value)
-        Settings.teleport = Value
-    end,
-})
+
 FullbrightTab:CreateToggle({
     Name = "Enable Fullbright",
     CurrentValue = false,
@@ -969,10 +962,7 @@ RunService.RenderStepped:Connect(function(deltaTime)
     if Settings.fullbright then
         enableFullbright()
     end
-       -- tp the endi
-    if Settings.teleport then
-        teleport()
-    end 
+    
     -- Noclip
     if Settings.Noclip and MyCharacter then
         for _, part in pairs(MyCharacter:GetDescendants()) do
