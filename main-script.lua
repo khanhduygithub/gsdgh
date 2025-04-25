@@ -384,7 +384,13 @@ local function ToggleESP(enabled)
         end
     end
 end
-
+teleport.MouseButton1Click:Connect(function()
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if root then
+        -- Vị trí cuối tùy map, đây chỉ là ví dụ
+        root.CFrame = CFrame.new(9999, 100, 0)
+    end
+end)
 -- Функция для Anti-AFK
 local function ToggleAntiAFK(enabled)
     Settings.AntiAFK = enabled
