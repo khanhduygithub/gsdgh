@@ -1,11 +1,12 @@
--- Đang tải giao diện KhanhDuyxHub 
+-- Загрузка Rayfield UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local scrVer = "0.5.2 STABLE"
 
--- Tạo một cửa sổ 
-local Window = KhanhDuyxHub:CreateWindow({
-    Name = "KhanhDuyxHub",
+-- Создание окна
+local Window = Rayfield:CreateWindow({
+    Name = "Dead Rails Script",
     LoadingTitle = "Script Loading",
-    LoadingSubtitle = "By KhanhDuy",
+    LoadingSubtitle = "By Sanya",
     ConfigurationSaving = {
         Enabled = false,
         FolderName = "UltraAimbot",
@@ -23,7 +24,7 @@ local Window = KhanhDuyxHub:CreateWindow({
    },
 })
 
--- Dịch vụ 
+-- Сервисы
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -33,7 +34,7 @@ local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
--- Biến 
+-- Переменные
 local MyCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Aiming = false
 local Shooting = false
@@ -45,7 +46,7 @@ local NPCList = {}
 local CharacterAddedConnection = nil
 
 
--- Cài đặt 
+-- Настройки
 local ESP = {
     Enabled = false,
     Mode = "Boxes",
@@ -64,7 +65,7 @@ local ESP = {
     LastUpdate = 0
 }
 
--- Cài đặt 
+-- Настройки
 local Settings = {
     Enabled = false,
     AutoAim = true,
@@ -82,6 +83,7 @@ local Settings = {
     FOVVisible = true,
     FOVFilled = false,
     fullbright = false,
+    teleport = false,
     FOVThickness = 2,
     FOVColor = Color3.fromRGB(255, 255, 255),
     AimKey = Enum.KeyCode.E,
@@ -92,7 +94,7 @@ local Settings = {
     AntiAFK = false,
 }
 
--- Cấm kỵ 
+-- Табы
 local AimbotTab = Window:CreateTab("Aimbot", 4483362458)
 local FullbrightTab = Window:CreateTab("Fullbright", 4483362458)
 local UtilityTab = Window:CreateTab("Utility", 4483362458)
@@ -100,7 +102,7 @@ local ESPTab = Window:CreateTab("ESP", 4483362458)
 local TeleTab = Window:CreateTab("TELEPORT", 4483362458)
 local ChangelogsTab = Window:CreateTab("Changelogs", 4483362458)
 
--- Chức năng xử lý nhân vật chết/tái sinh 
+-- Функция для обработки смерти/возрождения персонажа
 local function SetupCharacter()
     if MyCharacter then
         local humanoid = MyCharacter:FindFirstChildOfClass("Humanoid")
@@ -119,7 +121,7 @@ local function SetupCharacter()
     end
 end
 
--- Chức năng cho ESP 
+-- Функции для ESP
 local function CalculateCharacterSize(character)
     if not character or not character:FindFirstChild("HumanoidRootPart") then return Vector3.new(0, 0, 0) end
     
@@ -127,8 +129,8 @@ local function CalculateCharacterSize(character)
     local cf = root.CFrame
     local size = root.Size
     
-    -- Chỉ xem xét HumanoidRootPart để có hiệu suất 
-    return Vector3.new(size.X * 2, size.Y * 3, size.Z * 2) -- Tăng kích thước để có tầm nhìn tốt hơn 
+    -- Учитываем только HumanoidRootPart для производительности
+    return Vector3.new(size.X * 2, size.Y * 3, size.Z * 2) -- Увеличенные размеры для лучшей видимости
 end
 
 local function CreateESP(character)
@@ -208,7 +210,7 @@ local function UpdateESP()
             local rootPart = character.HumanoidRootPart
             local humanoid = character:FindFirstChildOfClass("Humanoid")
             
-            -- Kiểm tra xem có NPC nào chết không 
+            -- Проверка на мертвых NPC
             if ESP.IgnoreDead and humanoid and humanoid.Health <= 0 then
                 box.Visible = false
                 if ESP.Highlights[character] then
@@ -396,7 +398,7 @@ local function ToggleAntiAFK(enabled)
             task.wait(1)
             game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
         end)
-        KhanhDuyxHub:Notify({
+        Rayfield:Notify({
             Title = "Anti-AFK",
             Content = "Enabled - You won't be kicked for being AFK",
             Duration = 3,
@@ -406,7 +408,7 @@ local function ToggleAntiAFK(enabled)
         if AntiAFKConnection then
             AntiAFKConnection:Disconnect()
             AntiAFKConnection = nil
-            KhanhDuyxHub:Notify({
+            Rayfield:Notify({
                 Title = "Anti-AFK",
                 Content = "Disabled",
                 Duration = 3,
@@ -445,14 +447,7 @@ local function SetFastProximityPrompt(enabled)
         end))
     end
 end
-local function teleport()
-teleport.MouseButton1Click:Connect(function()
-    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if root then
-        -- Vị trí cuối tùy map, đây chỉ là ví dụ
-        root.CFrame = CFrame.new(9999, 100, 0)
-    end
-end)
+
 -- Инициализация FOV круга
 local function InitializeFOV()
     if FOV_Circle then FOV_Circle:Remove() end
@@ -464,7 +459,14 @@ local function InitializeFOV()
     FOV_Circle.Visible = Settings.FOVVisible
     FOV_Circle.Radius = Settings.AimFOV
 end
-
+local function teleport()
+teleport.MouseButton1Click:Connect(function()
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if root then
+        -- Vị trí cuối tùy map, đây chỉ là ví dụ
+        root.CFrame = CFrame.new(9999, 100, 0)
+    end
+end)
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
     Lighting.Brightness = 2
@@ -621,7 +623,7 @@ AimbotTab:CreateColorPicker({
     end
 })
 TeleTab:CreateToggle({
-    Name = "TP TO END",
+    Name = "Tp The End",
     CurrentValue = false,
     Callback = function(Value)
         Settings.teleport = Value
@@ -660,7 +662,7 @@ UtilityTab:CreateToggle({
     Callback = function(v) 
         Settings.AntiFall = v 
         if v then
-            KhanhDuyxHub:Notify({
+            Rayfield:Notify({
                 Title = "Anti-Fall",
                 Content = "Enabled - You will be teleported back if you fall below Y=-15",
                 Duration = 3,
@@ -975,7 +977,10 @@ RunService.RenderStepped:Connect(function(deltaTime)
     if Settings.fullbright then
         enableFullbright()
     end
-    
+       -- tp the endi
+    if Settings.teleport then
+        teleport()
+    end 
     -- Noclip
     if Settings.Noclip and MyCharacter then
         for _, part in pairs(MyCharacter:GetDescendants()) do
@@ -1033,7 +1038,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 -- Включаем ручное прицеливание
                 Aiming = true
                 AutoAimAtNearestNPC()  -- Попытаемся найти цель
-                KhanhDuyxHub:Notify({
+                Rayfield:Notify({
                     Title = "Aimbot",
                     Content = LockedTarget and "Manual Aim: Target Locked" or "Manual Aim: No Target Found",
                     Duration = 2,
@@ -1043,7 +1048,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 -- Выключаем ручное прицеливание
                 Aiming = false
                 LockedTarget = nil
-                KhanhDuyxHub:Notify({
+                Rayfield:Notify({
                     Title = "Aimbot",
                     Content = "Manual Aim Disabled",
                     Duration = 2,
@@ -1051,7 +1056,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 })
             end
         elseif Settings.Enabled and not Settings.ManualAim then
-            KhanhDuyxHub:Notify({
+            Rayfield:Notify({
                 Title = "Aimbot",
                 Content = "Manual mode is disabled in settings",
                 Duration = 2,
@@ -1060,10 +1065,10 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         end
     end
 
-    -- Bật chế độ tự động bắn 
+    -- Переключение автострельбы
     if input.KeyCode == Settings.ShootKey then
         Shooting = not Shooting
-        KhanhDuyxHub:Notify({
+        Rayfield:Notify({
             Title = "AutoShoot",
             Content = Shooting and "Enabled" or "Disabled",
             Duration = 2,
@@ -1072,14 +1077,14 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Khởi tạo 
+-- Инициализация
 InitializeFOV()
 SetupCharacter()
 UpdateNPCList()ToggleESP(ESP.Enabled) -- Инициализируем ESP с текущими настройками
 
 
--- Thông báo 
-KhanhDuyxHub:Notify({
+-- Уведомление
+Rayfield:Notify({
     Title = "Script Loaded",
     Content = "Version: " .. scrVer,
     Duration = 5,
