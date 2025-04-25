@@ -83,7 +83,6 @@ local Settings = {
     FOVVisible = true,
     FOVFilled = false,
     fullbright = false,
-    teleport = false,
     FOVThickness = 2,
     FOVColor = Color3.fromRGB(255, 255, 255),
     AimKey = Enum.KeyCode.E,
@@ -968,9 +967,6 @@ RunService.RenderStepped:Connect(function(deltaTime)
     -- Fullbright
     if Settings.fullbright then
         enableFullbright()
-    end
-    if Settings.teleport then
-        teleport()
     end
     
     -- Noclip
