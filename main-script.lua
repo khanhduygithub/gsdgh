@@ -1,8 +1,8 @@
--- Загрузка Rayfield UI
+-- Đang tải giao diện Rayfield 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local scrVer = "0.5.2 STABLE"
 
--- Создание окна
+-- Tạo một cửa sổ 
 local Window = Rayfield:CreateWindow({
     Name = "Dead Rails Script",
     LoadingTitle = "Script Loading",
@@ -24,7 +24,7 @@ local Window = Rayfield:CreateWindow({
    },
 })
 
--- Сервисы
+-- Dịch vụ 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -34,7 +34,7 @@ local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
--- Переменные
+-- Biến 
 local MyCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Aiming = false
 local Shooting = false
@@ -46,7 +46,7 @@ local NPCList = {}
 local CharacterAddedConnection = nil
 
 
--- Настройки
+-- Cài đặt 
 local ESP = {
     Enabled = false,
     Mode = "Boxes",
@@ -65,7 +65,7 @@ local ESP = {
     LastUpdate = 0
 }
 
--- Настройки
+-- Cài đặt 
 local Settings = {
     Enabled = false,
     AutoAim = true,
@@ -93,14 +93,15 @@ local Settings = {
     AntiAFK = false,
 }
 
--- Табы
+-- Cấm kỵ 
 local AimbotTab = Window:CreateTab("Aimbot", 4483362458)
 local FullbrightTab = Window:CreateTab("Fullbright", 4483362458)
 local UtilityTab = Window:CreateTab("Utility", 4483362458)
 local ESPTab = Window:CreateTab("ESP", 4483362458)
+local TeleTab = Window:CreateTab("teleport", 4483362458)
 local ChangelogsTab = Window:CreateTab("Changelogs", 4483362458)
 
--- Функция для обработки смерти/возрождения персонажа
+-- Chức năng xử lý nhân vật chết/tái sinh 
 local function SetupCharacter()
     if MyCharacter then
         local humanoid = MyCharacter:FindFirstChildOfClass("Humanoid")
@@ -119,7 +120,7 @@ local function SetupCharacter()
     end
 end
 
--- Функции для ESP
+-- Chức năng cho ESP 
 local function CalculateCharacterSize(character)
     if not character or not character:FindFirstChild("HumanoidRootPart") then return Vector3.new(0, 0, 0) end
     
@@ -127,8 +128,8 @@ local function CalculateCharacterSize(character)
     local cf = root.CFrame
     local size = root.Size
     
-    -- Учитываем только HumanoidRootPart для производительности
-    return Vector3.new(size.X * 2, size.Y * 3, size.Z * 2) -- Увеличенные размеры для лучшей видимости
+    -- Chỉ xem xét HumanoidRootPart để có hiệu suất 
+    return Vector3.new(size.X * 2, size.Y * 3, size.Z * 2) -- Tăng kích thước để có tầm nhìn tốt hơn 
 end
 
 local function CreateESP(character)
@@ -208,7 +209,7 @@ local function UpdateESP()
             local rootPart = character.HumanoidRootPart
             local humanoid = character:FindFirstChildOfClass("Humanoid")
             
-            -- Проверка на мертвых NPC
+            -- Kiểm tra xem có NPC nào chết không 
             if ESP.IgnoreDead and humanoid and humanoid.Health <= 0 then
                 box.Visible = false
                 if ESP.Highlights[character] then
@@ -1047,7 +1048,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         end
     end
 
-    -- Переключение автострельбы
+    -- Bật chế độ tự động bắn 
     if input.KeyCode == Settings.ShootKey then
         Shooting = not Shooting
         Rayfield:Notify({
@@ -1059,13 +1060,13 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Инициализация
+-- Khởi tạo 
 InitializeFOV()
 SetupCharacter()
 UpdateNPCList()ToggleESP(ESP.Enabled) -- Инициализируем ESP с текущими настройками
 
 
--- Уведомление
+-- Thông báo 
 Rayfield:Notify({
     Title = "Script Loaded",
     Content = "Version: " .. scrVer,
