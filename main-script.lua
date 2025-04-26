@@ -38,6 +38,7 @@ local Camera = Workspace.CurrentCamera
 local MyCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local NPCList = {}
 local CharacterAddedConnection = nil
+
 -- Настройки ESP
 local ESP = {
     Enabled = false,
@@ -74,7 +75,7 @@ local AimbotTab = Window:CreateTab("Aimbot", 4483362458)
 local FullbrightTab = Window:CreateTab("Fullbright", 4483362458)
 local UtilityTab = Window:CreateTab("Utility", 4483362458)
 local ESPTab = Window:CreateTab("ESP", 4483362458)
-local TeleTab = Window:CreateTab("Teleport", 4483362458)
+local TeleTab = Window:CreateTab("TELEPORT", 4483362458)
 local ChangelogsTab = Window:CreateTab("Changelogs", 4483362458)
 
 -- Функция для обработки смерти/возрождения персонажа
@@ -531,6 +532,18 @@ Workspace.DescendantRemoving:Connect(function(descendant)
     end
 end)
 
+-- Link teleportation to the button click
+TPBtn.MouseButton1Click:Connect(function()
+    -- Check if teleportation is enabled in settings
+    if Settings.teleport then
+        local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            -- Teleport to the position when toggle is enabled
+            root.CFrame = CFrame.new(9999, 100, 0)
+        end
+    end
+end)
+
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
     Lighting.Brightness = 2
@@ -696,6 +709,14 @@ ESPTab:CreateSlider({
     Callback = function(v)
         ESP.MaxDistance = v
     end
+})
+
+TeleTab:CreateToggle({
+    Name = "The End",
+    CurrentValue = false,
+    Callback = function(Value)
+        Settings.teleport = Value
+    end,
 })
 
 ChangelogsTab:CreateSection("Version 0.5.2")
