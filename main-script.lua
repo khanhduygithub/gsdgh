@@ -403,7 +403,13 @@ local function enableFullbright()
         end
     end
 end
-
+AimbotTab:CreateToggle({
+    Name = "Aimbot",
+    CurrentValue = false,
+    Callback = function(Value)
+        Settings.aimbot = Value
+    end,
+})
 -- UI элементы
 FullbrightTab:CreateToggle({
     Name = "Enable Fullbright",
@@ -540,17 +546,7 @@ ESPTab:CreateSlider({
         ESP.MaxDistance = v
     end
 })
-AimbotTab:CreateToggle({
-    Name = "Aimbot", 
-    CurrentValue = Settings.Enabled, 
-    Callback = function(v) 
-        Settings.Enabled = v 
-        if not v then 
-            Aiming = false
-            LockedTarget = nil
-        end
-    end
-})
+
 TeleTab:CreateToggle({
     Name = "The End",
     CurrentValue = false,
