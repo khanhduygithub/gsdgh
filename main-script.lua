@@ -715,6 +715,7 @@ TeleTab:CreateDropdown({
         local hrp = character:WaitForChild("HumanoidRootPart")
         hrp.CFrame = locations[selected]
     end
+	end
 })
 ChangelogsTab:CreateSection("Version 0.5.2")
 ChangelogsTab:CreateParagraph({
