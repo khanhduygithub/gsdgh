@@ -38,7 +38,13 @@ local Camera = Workspace.CurrentCamera
 local MyCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local NPCList = {}
 local CharacterAddedConnection = nil
-
+local locations = {
+    ["Sterling"] = CFrame.new(347, 87, -455),
+    ["Spawn"] = CFrame.new(0, 50, 0),
+    ["Boss Area"] = CFrame.new(1200, 100, -600),
+    ["Safe Zone"] = CFrame.new(100, 100, -100),
+    -- Bạn có thể thêm địa điểm khác vào đây
+}
 -- Настройки ESP
 local ESP = {
     Enabled = false,
@@ -699,14 +705,17 @@ ESPTab:CreateSlider({
     end
 })
 
-TeleTab:CreateToggle({
-    Name = "The End",
-    CurrentValue = false,
-    Callback = function(Value)
-        Settings.teleport = Value
-    end,
+TeleTab:CreateDropdown({
+    Name = "Select Location",
+    Options = table.keys(locations),
+    CurrentOption = "Sterling",
+    Callback = function(selected)
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character:WaitForChild("HumanoidRootPart")
+        hrp.CFrame = locations[selected]
+    end
 })
-
 ChangelogsTab:CreateSection("Version 0.5.2")
 ChangelogsTab:CreateParagraph({
     Title = "ESP System Improvements:",
