@@ -36,17 +36,10 @@ local Camera = Workspace.CurrentCamera
 
 -- Переменные
 local MyCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Aiming = false
-local Shooting = false
-local LockedTarget = nil
-local MousePos = Vector2.new()
-local LastMousePos = Vector2.new()
-local FOV_Circle
 local NPCList = {}
 local CharacterAddedConnection = nil
 
-
--- Настройки
+-- Настройки ESP
 local ESP = {
     Enabled = false,
     Mode = "Boxes",
@@ -60,34 +53,14 @@ local ESP = {
     ShowName = true,
     ShowDistance = true,
     MaxDistance = 1000,
-    UpdateRate = 0.05, -- Уменьшено время обновления
+    UpdateRate = 0.05,
     IgnoreDead = true,
     LastUpdate = 0
 }
 
--- Настройки
+-- Настройки утилит
 local Settings = {
-    Enabled = false,
-    AutoAim = true,
-    ManualAim = false, 
-    AimFOV = 120,
-    MaxDistance = 500,
-    Smoothing = 0.6,
-    PriorityPart = "Head",
-    Use3DDistance = true,
-    IgnorePlayers = true,
-    TeamCheck = false,
-    WallCheck = false,
-    AutoShoot = false,
-    ShowFOV = true,
-    FOVVisible = true,
-    FOVFilled = false,
     fullbright = false,
-    FOVThickness = 2,
-    FOVColor = Color3.fromRGB(255, 255, 255),
-    AimKey = Enum.KeyCode.E,
-    ShootKey = Enum.KeyCode.F,
-    RefreshRate = 0.1,
     Noclip = false,
     AntiFall = false,
     AntiAFK = false,
@@ -107,20 +80,340 @@ local function SetupCharacter()
         local humanoid = MyCharacter:FindFirstChildOfClass("Humanoid")
         if humanoid then
             humanoid.Died:Connect(function()
-                Aiming = false
-                LockedTarget = nil
-                Shooting = false
-                
                 MyCharacter = LocalPlayer.CharacterAdded:Wait()
                 task.wait(0.5)
-                InitializeFOV()
                 SetupCharacter()
             end)
         end
     end
 end
-local function aimbot(obj)
+
+-- Функции для ESP
+local function CalculateCharacterSize(character)
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return Vector3.new(0, 0, 0) end
+    
+    local root = character.HumanoidRootPart
+    local cf = root.CFrame
+    local size = root.Size
+    
+    return Vector3.new(size.X * 2, size.Y * 3, size.Z * 2)
+end
+
+local function CreateESP(character)
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = ESP.Color
+    box.Thickness = 2
+    box.Filled = false
+    box.Transparency = 1
+    box.ZIndex = 1
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Parent = CoreGui
+    highlight.Adornee = character
+    highlight.Enabled = false
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.FillColor = ESP.Color
+    highlight.FillTransparency = 0.5
+    highlight.OutlineColor = ESP.Color
+    highlight.OutlineTransparency = 0
+    
+    local hpBar = Drawing.new("Line")
+    hpBar.Visible = false
+    hpBar.Color = Color3.fromRGB(0, 255, 0)
+    hpBar.Thickness = 2
+    hpBar.ZIndex = 2
+    
+    local hpText = Drawing.new("Text")
+    hpText.Visible = false
+    hpText.Color = Color3.fromRGB(255, 255, 255)
+    hpText.Size = 13
+    hpText.Center = true
+    hpText.Outline = true
+    hpText.ZIndex = 3
+    
+    local nameText = Drawing.new("Text")
+    nameText.Visible = false
+    nameText.Color = Color3.fromRGB(255, 255, 255)
+    nameText.Size = 14
+    nameText.Center = true
+    nameText.Outline = true
+    nameText.ZIndex = 3
+    
+    local distText = Drawing.new("Text")
+    distText.Visible = false
+    distText.Color = Color3.fromRGB(255, 255, 255)
+    distText.Size = 12
+    distText.Center = true
+    distText.Outline = true
+    distText.ZIndex = 3
+    
+    ESP.Boxes[character] = box
+    ESP.Highlights[character] = highlight
+    ESP.Texts[character] = {
+        hpBar = hpBar,
+        hpText = hpText,
+        nameText = nameText,
+        distText = distText
+    }
+end
+
+local function UpdateESP()
+    if not ESP.Enabled then return end
+    
+    local cameraPos = Camera.CFrame.Position
+    
+    for character, box in pairs(ESP.Boxes) do
+        if character and character.Parent and character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = character.HumanoidRootPart
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            
+            if ESP.IgnoreDead and humanoid and humanoid.Health <= 0 then
+                box.Visible = false
+                if ESP.Highlights[character] then
+                    ESP.Highlights[character].Enabled = false
+                end
+                local texts = ESP.Texts[character]
+                if texts then
+                    texts.hpBar.Visible = false
+                    texts.hpText.Visible = false
+                    texts.nameText.Visible = false
+                    texts.distText.Visible = false
+                end
+                continue
+            end
+            
+            local position, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+            local distance = (rootPart.Position - cameraPos).Magnitude
+            
+            if onScreen and distance <= ESP.MaxDistance then
+                local size = CalculateCharacterSize(character)
+                local scale = 1000 / position.Z
+                local width = math.max(20, size.X * scale)
+                local height = math.max(30, size.Y * scale)
+                
+                box.Size = Vector2.new(width, height)
+                box.Position = Vector2.new(position.X - width/2, position.Y - height/2)
+                box.Visible = ESP.Mode == "Boxes"
+                box.Color = ESP.Color
+                
+                local highlight = ESP.Highlights[character]
+                if highlight then
+                    highlight.Enabled = ESP.Mode == "Highlight"
+                    highlight.Adornee = character
+                    highlight.FillColor = ESP.Color
+                    highlight.OutlineColor = ESP.Color
+                    highlight.FillTransparency = 0.5
+                    highlight.OutlineTransparency = 0
+                end
+                
+                local texts = ESP.Texts[character]
+                if texts then
+                    if ESP.ShowHP and humanoid then
+                        local hpPercent = humanoid.Health / humanoid.MaxHealth
+                        local barLength = width * hpPercent
+                        
+                        if ESP.HPPosition == "Horizontal" then
+                            texts.hpBar.From = Vector2.new(position.X - width/2, position.Y - height/2 - 10)
+                            texts.hpBar.To = Vector2.new(position.X - width/2 + barLength, position.Y - height/2 - 10)
+                        else
+                            texts.hpBar.From = Vector2.new(position.X - width/2 - 10, position.Y + height/2)
+                            texts.hpBar.To = Vector2.new(position.X - width/2 - 10, position.Y + height/2 - height * hpPercent)
+                        end
+                        
+                        texts.hpBar.Color = Color3.fromHSV(hpPercent * 0.3, 1, 1)
+                        texts.hpBar.Visible = true
+                    else
+                        texts.hpBar.Visible = false
+                    end
+                    
+                    if ESP.ShowHPText and humanoid then
+                        texts.hpText.Text = string.format("%d/%d", math.floor(humanoid.Health), math.floor(humanoid.MaxHealth))
+                        texts.hpText.Position = Vector2.new(position.X, position.Y - height/2 - 25)
+                        texts.hpText.Visible = true
+                    else
+                        texts.hpText.Visible = false
+                    end
+                    
+                    if ESP.ShowName then
+                        texts.nameText.Text = character.Name
+                        texts.nameText.Position = Vector2.new(position.X, position.Y + height/2 + 5)
+                        texts.nameText.Visible = true
+                    else
+                        texts.nameText.Visible = false
+                    end
+                    
+                    if ESP.ShowDistance then
+                        texts.distText.Text = string.format("%d studs", math.floor(distance))
+                        texts.distText.Position = Vector2.new(position.X, position.Y + height/2 + 20)
+                        texts.distText.Visible = true
+                    else
+                        texts.distText.Visible = false
+                    end
+                end
+            else
+                box.Visible = false
+                if ESP.Highlights[character] then
+                    ESP.Highlights[character].Enabled = false
+                end
+                
+                local texts = ESP.Texts[character]
+                if texts then
+                    texts.hpBar.Visible = false
+                    texts.hpText.Visible = false
+                    texts.nameText.Visible = false
+                    texts.distText.Visible = false
+                end
+            end
+        else
+            box.Visible = false
+            box:Remove()
+            ESP.Boxes[character] = nil
+            
+            if ESP.Highlights[character] then
+                ESP.Highlights[character]:Destroy()
+                ESP.Highlights[character] = nil
+            end
+            
+            local texts = ESP.Texts[character]
+            if texts then
+                texts.hpBar:Remove()
+                texts.hpText:Remove()
+                texts.nameText:Remove()
+                texts.distText:Remove()
+                ESP.Texts[character] = nil
+            end
+        end
+    end
+end
+
+local function ClearESP()
+    for character, box in pairs(ESP.Boxes) do
+        box:Remove()
+    end
+    ESP.Boxes = {}
+    
+    for character, highlight in pairs(ESP.Highlights) do
+        highlight:Destroy()
+    end
+    ESP.Highlights = {}
+    
+    for character, texts in pairs(ESP.Texts) do
+        texts.hpBar:Remove()
+        texts.hpText:Remove()
+        texts.nameText:Remove()
+        texts.distText:Remove()
+    end
+    ESP.Texts = {}
+end
+
+local function ToggleESP(enabled)
+    ESP.Enabled = enabled
+    if not enabled then
+        ClearESP()
+        if ESPConnection then
+            ESPConnection:Disconnect()
+            ESPConnection = nil
+        end
+    else
+        for _, model in ipairs(Workspace:GetChildren()) do
+            if model:IsA("Model") and model ~= MyCharacter and model:FindFirstChildOfClass("Humanoid") then
+                CreateESP(model)
+            end
+        end
+        
+        if not ESPConnection then
+            ESPConnection = Workspace.ChildAdded:Connect(function(child)
+                if ESP.Enabled and child:IsA("Model") and child ~= MyCharacter and child:FindFirstChildOfClass("Humanoid") then
+                    CreateESP(child)
+                end
+            end)
+        end
+    end
+end
+
+-- Функция для Anti-AFK
+local function ToggleAntiAFK(enabled)
+    Settings.AntiAFK = enabled
+    if enabled then
+        if AntiAFKConnection then
+            AntiAFKConnection:Disconnect()
+        end
+        AntiAFKConnection = game:GetService("Players").LocalPlayer.Idled:Connect(function()
+            game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+            task.wait(1)
+            game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+        end)
+        Rayfield:Notify({
+            Title = "Anti-AFK",
+            Content = "Enabled - You won't be kicked for being AFK",
+            Duration = 3,
+            Image = 4483362458
+        })
+    else
+        if AntiAFKConnection then
+            AntiAFKConnection:Disconnect()
+            AntiAFKConnection = nil
+            Rayfield:Notify({
+                Title = "Anti-AFK",
+                Content = "Disabled",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+end
+
+local FastProximityPromptEnabled = false
+local ProximityPromptConnections = {}
+
+local function SetFastProximityPrompt(enabled)
+    FastProximityPromptEnabled = enabled
+    
+    for _, connection in pairs(ProximityPromptConnections) do
+        connection:Disconnect()
+    end
+    ProximityPromptConnections = {}
+    
+    if enabled then
+        for _, prompt in ipairs(workspace:GetDescendants()) do
+            if prompt:IsA("ProximityPrompt") then
+                prompt.HoldDuration = 0
+            end
+        end
+        
+        table.insert(ProximityPromptConnections, workspace.DescendantAdded:Connect(function(descendant)
+            if FastProximityPromptEnabled and descendant:IsA("ProximityPrompt") then
+                descendant.HoldDuration = 0
+            end
+        end))
+    end
+end
 local fov = 90
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Cam = workspace.CurrentCamera
+local Player = game:GetService("Players").LocalPlayer
+
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = false
+FOVring.Thickness = 2
+FOVring.Color = Color3.fromRGB(128, 0, 128)
+FOVring.Filled = false
+FOVring.Radius = fov
+FOVring.Position = Cam.ViewportSize / 2
+
+local isAiming = false
+local validNPCs = {}
+local raycastParams = RaycastParams.new()
+raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
+
+local function isNPC(obj)
     return obj:IsA("Model") 
         and obj:FindFirstChild("Humanoid")
         and obj.Humanoid.Health > 0
@@ -209,6 +502,33 @@ local function getTarget()
     return nearest
 end
 
+local function aim(targetPosition)
+    local currentCF = Cam.CFrame
+    local targetDirection = (targetPosition - currentCF.Position).Unit
+    local smoothFactor = 0.581
+    local newLookVector = currentCF.LookVector:Lerp(targetDirection, smoothFactor)
+    Cam.CFrame = CFrame.new(currentCF.Position, currentCF.Position + newLookVector)
+end
+
+local heartbeat = RunService.Heartbeat
+local lastUpdate = 0
+local UPDATE_INTERVAL = 0.4
+
+heartbeat:Connect(function(dt)
+    updateDrawings()
+    lastUpdate = lastUpdate + dt
+    if lastUpdate >= UPDATE_INTERVAL then
+        updateNPCs()
+        lastUpdate = 0
+    end
+    if isAiming then
+        local target = getTarget()
+        if target then
+            local predictedPosition = predictPos(target)
+            aim(predictedPosition)
+        end
+    end
+end)
 
 
 local dragging, dragInput, dragStart, startPos
@@ -218,32 +538,8 @@ local function update(input)
     ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
-ToggleButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = ToggleButton.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-ToggleButton.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
-    end
-end)
-
 updateNPCs()
+
 workspace.DescendantRemoved:Connect(function(descendant)
     if isNPC(descendant) then
         for i = #validNPCs, 1, -1 do
@@ -259,344 +555,7 @@ game:GetService("Players").PlayerRemoving:Connect(function()
     FOVring:Remove()
     ScreenGui:Destroy()
 end)
--- Функции для ESP
-local function CalculateCharacterSize(character)
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return Vector3.new(0, 0, 0) end
-    
-    local root = character.HumanoidRootPart
-    local cf = root.CFrame
-    local size = root.Size
-    
-    -- Учитываем только HumanoidRootPart для производительности
-    return Vector3.new(size.X * 2, size.Y * 3, size.Z * 2) -- Увеличенные размеры для лучшей видимости
-end
 
-local function CreateESP(character)
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    
-    -- Box ESP
-    local box = Drawing.new("Square")
-    box.Visible = false
-    box.Color = ESP.Color
-    box.Thickness = 2
-    box.Filled = false
-    box.Transparency = 1
-    box.ZIndex = 1
-    
-    -- Highlight ESP
-    local highlight = Instance.new("Highlight")
-    highlight.Parent = CoreGui
-    highlight.Adornee = character
-    highlight.Enabled = false
-    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    highlight.FillColor = ESP.Color
-    highlight.FillTransparency = 0.5
-    highlight.OutlineColor = ESP.Color
-    highlight.OutlineTransparency = 0
-    
-    -- HP Bar
-    local hpBar = Drawing.new("Line")
-    hpBar.Visible = false
-    hpBar.Color = Color3.fromRGB(0, 255, 0)
-    hpBar.Thickness = 2
-    hpBar.ZIndex = 2
-    
-    -- HP Text
-    local hpText = Drawing.new("Text")
-    hpText.Visible = false
-    hpText.Color = Color3.fromRGB(255, 255, 255)
-    hpText.Size = 13
-    hpText.Center = true
-    hpText.Outline = true
-    hpText.ZIndex = 3
-    
-    -- Name Text
-    local nameText = Drawing.new("Text")
-    nameText.Visible = false
-    nameText.Color = Color3.fromRGB(255, 255, 255)
-    nameText.Size = 14
-    nameText.Center = true
-    nameText.Outline = true
-    nameText.ZIndex = 3
-    
-    -- Distance Text
-    local distText = Drawing.new("Text")
-    distText.Visible = false
-    distText.Color = Color3.fromRGB(255, 255, 255)
-    distText.Size = 12
-    distText.Center = true
-    distText.Outline = true
-    distText.ZIndex = 3
-    
-    ESP.Boxes[character] = box
-    ESP.Highlights[character] = highlight
-    ESP.Texts[character] = {
-        hpBar = hpBar,
-        hpText = hpText,
-        nameText = nameText,
-        distText = distText
-    }
-end
-
-local function UpdateESP()
-    if not ESP.Enabled then return end
-    
-    local cameraPos = Camera.CFrame.Position
-    
-    for character, box in pairs(ESP.Boxes) do
-        if character and character.Parent and character:FindFirstChild("HumanoidRootPart") then
-            local rootPart = character.HumanoidRootPart
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
-            
-            -- Проверка на мертвых NPC
-            if ESP.IgnoreDead and humanoid and humanoid.Health <= 0 then
-                box.Visible = false
-                if ESP.Highlights[character] then
-                    ESP.Highlights[character].Enabled = false
-                end
-                local texts = ESP.Texts[character]
-                if texts then
-                    texts.hpBar.Visible = false
-                    texts.hpText.Visible = false
-                    texts.nameText.Visible = false
-                    texts.distText.Visible = false
-                end
-                continue
-            end
-            
-            local position, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
-            local distance = (rootPart.Position - cameraPos).Magnitude
-            
-            if onScreen and distance <= ESP.MaxDistance then
-                -- Calculate character size
-                local size = CalculateCharacterSize(character)
-                local scale = 1000 / position.Z
-                local width = math.max(20, size.X * scale)
-                local height = math.max(30, size.Y * scale)
-                
-                -- Update box
-                box.Size = Vector2.new(width, height)
-                box.Position = Vector2.new(position.X - width/2, position.Y - height/2)
-                box.Visible = ESP.Mode == "Boxes"
-                box.Color = ESP.Color
-                
-                -- Update highlight
-                local highlight = ESP.Highlights[character]
-                if highlight then
-                    highlight.Enabled = ESP.Mode == "Highlight"
-                    highlight.Adornee = character
-                    highlight.FillColor = ESP.Color
-                    highlight.OutlineColor = ESP.Color
-                    highlight.FillTransparency = 0.5
-                    highlight.OutlineTransparency = 0
-                end
-                
-                -- Get texts
-                local texts = ESP.Texts[character]
-                if texts then
-                    -- HP Bar
-                    if ESP.ShowHP and humanoid then
-                        local hpPercent = humanoid.Health / humanoid.MaxHealth
-                        local barLength = width * hpPercent
-                        
-                        if ESP.HPPosition == "Horizontal" then
-                            texts.hpBar.From = Vector2.new(position.X - width/2, position.Y - height/2 - 10)
-                            texts.hpBar.To = Vector2.new(position.X - width/2 + barLength, position.Y - height/2 - 10)
-                        else -- Vertical
-                            texts.hpBar.From = Vector2.new(position.X - width/2 - 10, position.Y + height/2)
-                            texts.hpBar.To = Vector2.new(position.X - width/2 - 10, position.Y + height/2 - height * hpPercent)
-                        end
-                        
-                        texts.hpBar.Color = Color3.fromHSV(hpPercent * 0.3, 1, 1)
-                        texts.hpBar.Visible = true
-                    else
-                        texts.hpBar.Visible = false
-                    end
-                    
-                    -- HP Text
-                    if ESP.ShowHPText and humanoid then
-                        texts.hpText.Text = string.format("%d/%d", math.floor(humanoid.Health), math.floor(humanoid.MaxHealth))
-                        texts.hpText.Position = Vector2.new(position.X, position.Y - height/2 - 25)
-                        texts.hpText.Visible = true
-                    else
-                        texts.hpText.Visible = false
-                    end
-                    
-                    -- Name Text
-                    if ESP.ShowName then
-                        texts.nameText.Text = character.Name
-                        texts.nameText.Position = Vector2.new(position.X, position.Y + height/2 + 5)
-                        texts.nameText.Visible = true
-                    else
-                        texts.nameText.Visible = false
-                    end
-                    
-                    -- Distance Text
-                    if ESP.ShowDistance then
-                        texts.distText.Text = string.format("%d studs", math.floor(distance))
-                        texts.distText.Position = Vector2.new(position.X, position.Y + height/2 + 20)
-                        texts.distText.Visible = true
-                    else
-                        texts.distText.Visible = false
-                    end
-                end
-            else
-                box.Visible = false
-                if ESP.Highlights[character] then
-                    ESP.Highlights[character].Enabled = false
-                end
-                
-                local texts = ESP.Texts[character]
-                if texts then
-                    texts.hpBar.Visible = false
-                    texts.hpText.Visible = false
-                    texts.nameText.Visible = false
-                    texts.distText.Visible = false
-                end
-            end
-        else
-            -- Cleanup if character no longer exists
-            box.Visible = false
-            box:Remove()
-            ESP.Boxes[character] = nil
-            
-            if ESP.Highlights[character] then
-                ESP.Highlights[character]:Destroy()
-                ESP.Highlights[character] = nil
-            end
-            
-            local texts = ESP.Texts[character]
-            if texts then
-                texts.hpBar:Remove()
-                texts.hpText:Remove()
-                texts.nameText:Remove()
-                texts.distText:Remove()
-                ESP.Texts[character] = nil
-            end
-        end
-    end
-end
-
-local function ClearESP()
-    for character, box in pairs(ESP.Boxes) do
-        box:Remove()
-    end
-    ESP.Boxes = {}
-    
-    for character, highlight in pairs(ESP.Highlights) do
-        highlight:Destroy()
-    end
-    ESP.Highlights = {}
-    
-    for character, texts in pairs(ESP.Texts) do
-        texts.hpBar:Remove()
-        texts.hpText:Remove()
-        texts.nameText:Remove()
-        texts.distText:Remove()
-    end
-    ESP.Texts = {}
-end
-
-local function ToggleESP(enabled)
-    ESP.Enabled = enabled
-    if not enabled then
-        ClearESP()
-        if ESPConnection then
-            ESPConnection:Disconnect()
-            ESPConnection = nil
-        end
-    else
-        -- Create ESP for existing NPCs
-        for _, model in ipairs(Workspace:GetChildren()) do
-            if model:IsA("Model") and model ~= MyCharacter and model:FindFirstChildOfClass("Humanoid") then
-                CreateESP(model)
-            end
-        end
-        
-        -- Подключаем отслеживание новых NPC
-        if not ESPConnection then
-            ESPConnection = Workspace.ChildAdded:Connect(function(child)
-                if ESP.Enabled and child:IsA("Model") and child ~= MyCharacter and child:FindFirstChildOfClass("Humanoid") then
-                    CreateESP(child)
-                end
-            end)
-        end
-    end
-end
-
--- Функция для Anti-AFK
-local function ToggleAntiAFK(enabled)
-    Settings.AntiAFK = enabled
-    if enabled then
-        if AntiAFKConnection then
-            AntiAFKConnection:Disconnect()
-        end
-        AntiAFKConnection = game:GetService("Players").LocalPlayer.Idled:Connect(function()
-            game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
-            task.wait(1)
-            game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
-        end)
-        Rayfield:Notify({
-            Title = "Anti-AFK",
-            Content = "Enabled - You won't be kicked for being AFK",
-            Duration = 3,
-            Image = 4483362458
-        })
-    else
-        if AntiAFKConnection then
-            AntiAFKConnection:Disconnect()
-            AntiAFKConnection = nil
-            Rayfield:Notify({
-                Title = "Anti-AFK",
-                Content = "Disabled",
-                Duration = 3,
-                Image = 4483362458
-            })
-        end
-    end
-end
-
-local FastProximityPromptEnabled = false
-local ProximityPromptConnections = {}
-
--- Замените функцию SetFastProximityPrompt на эту новую версию
-local function SetFastProximityPrompt(enabled)
-    FastProximityPromptEnabled = enabled
-    
-    -- Очищаем предыдущие соединения
-    for _, connection in pairs(ProximityPromptConnections) do
-        connection:Disconnect()
-    end
-    ProximityPromptConnections = {}
-    
-    if enabled then
-        -- Обрабатываем существующие промпты
-        for _, prompt in ipairs(workspace:GetDescendants()) do
-            if prompt:IsA("ProximityPrompt") then
-                prompt.HoldDuration = 0
-            end
-        end
-        
-        -- Создаем соединение для новых промптов
-        table.insert(ProximityPromptConnections, workspace.DescendantAdded:Connect(function(descendant)
-            if FastProximityPromptEnabled and descendant:IsA("ProximityPrompt") then
-                descendant.HoldDuration = 0
-            end
-        end))
-    end
-end
-
--- Инициализация FOV круга
-local function InitializeFOV()
-    if FOV_Circle then FOV_Circle:Remove() end
-    FOV_Circle = Drawing.new("Circle")
-    FOV_Circle.Transparency = 1
-    FOV_Circle.Color = Settings.FOVColor
-    FOV_Circle.Thickness = Settings.FOVThickness
-    FOV_Circle.Filled = Settings.FOVFilled
-    FOV_Circle.Visible = Settings.FOVVisible
-    FOV_Circle.Radius = Settings.AimFOV
-end
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
     Lighting.Brightness = 2
@@ -608,22 +567,19 @@ local function enableFullbright()
         end
     end
 end
+AimbotTab:CreateSection("Main")
 AimbotTab:CreateToggle({
-    Name = "Aim bot",
-    CurrentValue = false,
-    Callback = function(Value)
-        Settings.aimbot = Value
-    end,
+    Name = "Aimbot", 
+    CurrentValue = Settings.Enabled, 
+    Callback = function(v) 
+        Settings.Enabled = v 
+        if not v then 
+            Aiming = false
+            LockedTarget = nil
+        end
+    end
 })
-
 -- UI элементы
-TeleTab:CreateToggle({
-    Name = "The End",
-    CurrentValue = false,
-    Callback = function(Value)
-        Settings.teleport = Value
-    end,
-})
 FullbrightTab:CreateToggle({
     Name = "Enable Fullbright",
     CurrentValue = false,
@@ -760,6 +716,14 @@ ESPTab:CreateSlider({
     end
 })
 
+TeleTab:CreateToggle({
+    Name = "The End",
+    CurrentValue = false,
+    Callback = function(Value)
+        Settings.teleport = Value
+    end,
+})
+
 ChangelogsTab:CreateSection("Version 0.5.2")
 ChangelogsTab:CreateParagraph({
     Title = "ESP System Improvements:",
@@ -845,113 +809,12 @@ ChangelogsTab:CreateParagraph({
     ]]
 })
 
--- Проверка валидности цели
-local function IsValidTarget(model)
-    if not model or not model:IsA("Model") or model == MyCharacter then return false end
-
-    local hum = model:FindFirstChildOfClass("Humanoid")
-    if not hum or hum.Health <= 0 or hum:GetState() == Enum.HumanoidStateType.Dead then return false end
-
-    local player = Players:GetPlayerFromCharacter(model)
-    if Settings.IgnorePlayers and player then return false end
-
-    return true
-end
-
-local function GetTargetPart(model)
-    if not model or not model:IsA("Model") then return nil end
-
-    local part = model:FindFirstChild(Settings.PriorityPart)
-    if part and part:IsA("BasePart") then return part end
-
-    local head = model:FindFirstChild("Head") or model:FindFirstChild("head")
-    if head and head:IsA("BasePart") then return head end
-
-    local torso = model:FindFirstChild("HumanoidRootPart") or 
-                 model:FindFirstChild("UpperTorso") or 
-                 model:FindFirstChild("Torso")
-    if torso and torso:IsA("BasePart") then return torso end
-
-    return nil
-end
-
--- Обновление списка NPC
-local function UpdateNPCList()
-    NPCList = {}
-    for _, model in ipairs(Workspace:GetDescendants()) do
-        if model:IsA("Model") and model ~= MyCharacter then
-            local hum = model:FindFirstChildOfClass("Humanoid")
-            if hum and hum.Health > 0 then
-                table.insert(NPCList, model)
-            end
-        end
-    end
-end
-
--- Автоматическое наведение на ближайшего NPC
-local function AutoAimAtNearestNPC()
-    if not Settings.Enabled or not MyCharacter then return end
-    
-    local myPos = MyCharacter:GetPivot().Position
-    local bestTarget, closestDist = nil, Settings.AimFOV + 1
-    
-    for _, model in ipairs(NPCList) do
-        if not IsValidTarget(model) then continue end
-        
-        local part = GetTargetPart(model)
-        if not part then continue end
-        
-        local dist3D = (part.Position - myPos).Magnitude
-        if Settings.Use3DDistance and dist3D > Settings.MaxDistance then continue end
-        
-        local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
-        if not onScreen then continue end
-        
-        local dist2D = (Vector2.new(screenPos.X, screenPos.Y) - MousePos).Magnitude
-        if dist2D > Settings.AimFOV then continue end
-        
-        if dist2D < closestDist then
-            closestDist = dist2D
-            bestTarget = part
-        end
-    end
-    
-    if bestTarget then
-        LockedTarget = bestTarget
-        if not Settings.ManualAim then
-            Aiming = true
-        end
-    elseif not Settings.ManualAim then
-        LockedTarget = nil
-        Aiming = false
-    end
-end
-
--- Периодическое обновление списка NPC
-task.spawn(function()
-    while true do
-        UpdateNPCList()
-        task.wait(3)
-    end
-end)
-
 -- Основной цикл
 RunService.RenderStepped:Connect(function(deltaTime)
-    -- Обновляем позицию мыши
-    LastMousePos = MousePos
-    MousePos = UserInputService:GetMouseLocation()
-
     ESP.LastUpdate = ESP.LastUpdate + deltaTime
     if ESP.LastUpdate >= ESP.UpdateRate then
         UpdateESP()
         ESP.LastUpdate = 0
-    end
-    
-
-    -- Обновляем FOV круг
-    if FOV_Circle then
-        FOV_Circle.Position = MousePos
-        FOV_Circle.Visible = Settings.ShowFOV and Settings.FOVVisible
     end
     
     -- Проверяем наличие персонажа
@@ -961,11 +824,6 @@ RunService.RenderStepped:Connect(function(deltaTime)
             SetupCharacter()
         end
         return
-    end
-    
-    -- Автоматическое прицеливание (только если не в ручном режиме)
-    if Settings.Enabled and Settings.AutoAim and not Settings.ManualAim then
-        AutoAimAtNearestNPC()
     end
     
     -- Fullbright
@@ -979,22 +837,6 @@ RunService.RenderStepped:Connect(function(deltaTime)
             if part:IsA("BasePart") then
                 part.CanCollide = false
             end
-        end
-    end
-    
-    -- Применение прицеливания
-    if Settings.Enabled and (Aiming or (Settings.AutoAim and not Settings.ManualAim)) and LockedTarget and LockedTarget.Parent then
-        local camPos = Camera.CFrame.Position
-        local direction = (LockedTarget.Position - camPos).Unit
-        local smoothDirection = Camera.CFrame.LookVector:Lerp(direction, Settings.Smoothing)
-        
-        Camera.CFrame = CFrame.lookAt(camPos, camPos + smoothDirection)
-        
-        -- Автоматическая стрельба
-        if Settings.AutoShoot and Shooting then
-            mouse1press()
-            task.wait(0.03)
-            mouse1release()
         end
     end
 end)
@@ -1019,61 +861,9 @@ game:GetService("Players").PlayerRemoving:Connect(function(player)
     end
 end)
 
--- Обработка клавиш
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-
-    -- Ручное прицеливание по клавише
-    if input.KeyCode == Settings.AimKey then
-        if Settings.Enabled and Settings.ManualAim then
-            if not Aiming then
-                -- Включаем ручное прицеливание
-                Aiming = true
-                AutoAimAtNearestNPC()  -- Попытаемся найти цель
-                Rayfield:Notify({
-                    Title = "Aimbot",
-                    Content = LockedTarget and "Manual Aim: Target Locked" or "Manual Aim: No Target Found",
-                    Duration = 2,
-                    Image = 4483362458
-                })
-            else
-                -- Выключаем ручное прицеливание
-                Aiming = false
-                LockedTarget = nil
-                Rayfield:Notify({
-                    Title = "Aimbot",
-                    Content = "Manual Aim Disabled",
-                    Duration = 2,
-                    Image = 4483362458
-                })
-            end
-        elseif Settings.Enabled and not Settings.ManualAim then
-            Rayfield:Notify({
-                Title = "Aimbot",
-                Content = "Manual mode is disabled in settings",
-                Duration = 2,
-                Image = 4483362458
-            })
-        end
-    end
-
-    -- Переключение автострельбы
-    if input.KeyCode == Settings.ShootKey then
-        Shooting = not Shooting
-        Rayfield:Notify({
-            Title = "AutoShoot",
-            Content = Shooting and "Enabled" or "Disabled",
-            Duration = 2,
-            Image = 4483362458
-        })
-    end
-end)
-
 -- Инициализация
-InitializeFOV()
 SetupCharacter()
-UpdateNPCList()ToggleESP(ESP.Enabled) -- Инициализируем ESP с текущими настройками
-
+ToggleESP(ESP.Enabled)
 
 -- Уведомление
 Rayfield:Notify({
