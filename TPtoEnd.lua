@@ -1,133 +1,217 @@
-local player = game.Players.LocalPlayer
-local noclipEnabled = false
-local ownerUserId = 4539739448
+--// Made by yee_kunkun
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "Dead Rails Hub - by yee_kunkun",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "DeadRailsHub"
+})
+
+-- Variables cho Aimbot
+local fov = 90
 local RunService = game:GetService("RunService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
+local UserInputService = game:GetService("UserInputService")
+local Cam = workspace.CurrentCamera
+local Player = game:GetService("Players").LocalPlayer
 
-local function sendNotification(title, text, duration)
-    pcall(function()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = title,
-            Text = text,
-            Duration = duration or 4
-        })
-    end)
+local isAiming = false
+local validNPCs = {}
+local raycastParams = RaycastParams.new()
+raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = false
+FOVring.Thickness = 2
+FOVring.Color = Color3.fromRGB(128, 0, 128)
+FOVring.Filled = false
+FOVring.Radius = fov
+FOVring.Position = Cam.ViewportSize / 2
+
+-- Hàm Aimbot cơ bản
+local function isNPC(obj)
+    return obj:IsA("Model") 
+        and obj:FindFirstChild("Humanoid")
+        and obj.Humanoid.Health > 0
+        and obj:FindFirstChild("Head")
+        and obj:FindFirstChild("HumanoidRootPart")
+        and not game:GetService("Players"):GetPlayerFromCharacter(obj)
 end
 
-if player.UserId == ownerUserId then
-    sendNotification("Welcome Owner", "Welcome " .. player.Name, 5)
-end
-
-local function toggleNoclip(state)
-    noclipEnabled = state or not noclipEnabled
-    for _, part in pairs(player.Character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = not noclipEnabled
+local function updateNPCs()
+    local tempTable = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if isNPC(obj) then
+            tempTable[obj] = true
+        end
+    end
+    for i = #validNPCs, 1, -1 do
+        if not tempTable[validNPCs[i]] then
+            table.remove(validNPCs, i)
+        end
+    end
+    for obj in pairs(tempTable) do
+        if not table.find(validNPCs, obj) then
+            table.insert(validNPCs, obj)
         end
     end
 end
 
-RunService.Stepped:Connect(function()
-    if noclipEnabled and player.Character then
-        for _, part in pairs(player.Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
+workspace.DescendantAdded:Connect(function(descendant)
+    if isNPC(descendant) then
+        table.insert(validNPCs, descendant)
+        local humanoid = descendant:WaitForChild("Humanoid")
+        humanoid.Destroying:Connect(function()
+            for i = #validNPCs, 1, -1 do
+                if validNPCs[i] == descendant then
+                    table.remove(validNPCs, i)
+                    break
+                end
+            end
+        end)
+    end
+end)
+
+workspace.DescendantRemoved:Connect(function(descendant)
+    if isNPC(descendant) then
+        for i = #validNPCs, 1, -1 do
+            if validNPCs[i] == descendant then
+                table.remove(validNPCs, i)
+                break
             end
         end
     end
 end)
 
-local success, library = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/liebertsx/Tora-Library/main/src/librarynew", true))()
-end)
-
-if not success or not library then
-    sendNotification("Error", "Failed to load Tora Library", 5)
-    return
+local function predictPos(target)
+    local rootPart = target:FindFirstChild("HumanoidRootPart")
+    local head = target:FindFirstChild("Head")
+    if not rootPart or not head then
+        return head and head.Position or rootPart and rootPart.Position
+    end
+    local velocity = rootPart.Velocity
+    local predictionTime = 0.02
+    local basePosition = rootPart.Position + velocity * predictionTime
+    local headOffset = head.Position - rootPart.Position
+    return basePosition + headOffset
 end
 
-local window = library:CreateWindow("DEAD RAILS")
-
-window:AddButton({
-    text = "Bypass To End",
-    callback = function()
-        sendNotification("Spam Button If Not Teleported", "Keep clicking if teleport fails", 4)
-        wait(1)
-        player.Character:PivotTo(CFrame.new(-346, -69, -49060))
-    end
-})
-
-window:AddButton({
-    text = "Toggle NoClip",
-    callback = function()
-        toggleNoclip()
-        sendNotification("NoClip Status", "NoClip is now " .. (noclipEnabled and "Enabled" or "Disabled"), 4)
-    end
-})
-
-window:AddLabel({ text = "Credits: Dora & Shidou & Play", type = "label" })
-library:Init()
-
-local function createTimerUI()
-    local screenGui = Instance.new("ScreenGui", player.PlayerGui)
-
-    local timerFrame = Instance.new("Frame", screenGui)
-    timerFrame.Size = UDim2.new(0, 220, 0, 60)
-    timerFrame.Position = UDim2.new(0.5, -110, 0, 10)
-    timerFrame.AnchorPoint = Vector2.new(0.5, 0)
-    timerFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    timerFrame.BorderSizePixel = 2
-    timerFrame.BorderColor3 = Color3.fromRGB(255, 85, 85)
-
-    local timerLabel = Instance.new("TextLabel", timerFrame)
-    timerLabel.Size = UDim2.new(1, 0, 1, 0)
-    timerLabel.Text = "10:00"
-    timerLabel.TextColor3 = Color3.fromRGB(255, 85, 85)
-    timerLabel.Font = Enum.Font.GothamBlack
-    timerLabel.TextSize = 32
-    timerLabel.BackgroundTransparency = 1
-
-    return timerLabel
-end
-
-local timerLabel = createTimerUI()
-
-local function startTimer(duration)
-    local endTime = tick() + duration
-    while tick() < endTime do
-        local remaining = endTime - tick()
-        timerLabel.Text = string.format("%02d:%02d", math.floor(remaining / 60), math.floor(remaining % 60))
-        wait(0.1)
-    end
-    timerLabel.Text = "00:00"
-end
-
-startTimer(600)
-
-local function handleCommand(command)
-    local args = {}
-    for arg in command:gmatch("%S+") do table.insert(args, arg) end
-
-    if player.UserId == ownerUserId then
-        if args[1] == "!kick" and args[2] then
-            local targetPlayer = game.Players:FindFirstChild(args[2])
-            if targetPlayer then
-                targetPlayer:Kick("Kicked by Owner")
-            else
-                sendNotification("Error", "Player not found: " .. args[2], 5)
+local function getTarget()
+    local nearest = nil
+    local minDistance = math.huge
+    local viewportCenter = Cam.ViewportSize / 2
+    raycastParams.FilterDescendantsInstances = {Player.Character}
+    for _, npc in ipairs(validNPCs) do
+        local predictedPos = predictPos(npc)
+        local screenPos, visible = Cam:WorldToViewportPoint(predictedPos)
+        if visible and screenPos.Z > 0 then
+            local ray = workspace:Raycast(
+                Cam.CFrame.Position,
+                (predictedPos - Cam.CFrame.Position).Unit * 1000,
+                raycastParams
+            )
+            if ray and ray.Instance:IsDescendantOf(npc) then
+                local distance = (Vector2.new(screenPos.X, screenPos.Y) - viewportCenter).Magnitude
+                if distance < minDistance and distance < fov then
+                    minDistance = distance
+                    nearest = npc
+                end
             end
-        elseif args[1] == "!notify" then
-            local message = table.concat(args, " ", 2)
-            for _, plr in pairs(game.Players:GetPlayers()) do
-                sendNotification("Notification", message, 5)
-            end
-        elseif args[1] == "!say" then
-            local message = table.concat(args, " ", 2)
-            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Slash, false, game)
-            wait(0.1)
-            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
         end
     end
+    return nearest
 end
 
-player.Chatted:Connect(handleCommand)
+local function aim(targetPosition)
+    local currentCF = Cam.CFrame
+    local targetDirection = (targetPosition - currentCF.Position).Unit
+    local smoothFactor = 0.581
+    local newLookVector = currentCF.LookVector:Lerp(targetDirection, smoothFactor)
+    Cam.CFrame = CFrame.new(currentCF.Position, currentCF.Position + newLookVector)
+end
+
+-- Kết nối heartbeat
+RunService.Heartbeat:Connect(function(dt)
+    FOVring.Position = Cam.ViewportSize / 2
+    FOVring.Radius = fov * (Cam.ViewportSize.Y / 1080)
+
+    if isAiming then
+        local target = getTarget()
+        if target then
+            local predictedPosition = predictPos(target)
+            aim(predictedPosition)
+        end
+    end
+end)
+
+--// Tạo các tab
+local AttackTab = Window:MakeTab({
+    Name = "Attack",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local TeleportTab = Window:MakeTab({
+    Name = "Teleport",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
+
+local UtilityTab = Window:MakeTab({
+    Name = "Utility",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+--// Attack Tab: Nút bật Aimbot
+AttackTab:AddToggle({
+    Name = "Aimbot (NPC Headshot)",
+    Default = false,
+    Callback = function(Value)
+        isAiming = Value
+        FOVring.Visible = Value
+    end
+})
+
+AttackTab:AddButton({
+    Name = "Kill Aura (Fake)",
+    Callback = function()
+        print("Kill Aura bật lên (chưa code thêm nhé)")
+    end
+})
+
+--// Teleport Tab
+TeleportTab:AddButton({
+    Name = "Teleport tới Shop",
+    Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(0, 5, 0))
+    end
+})
+
+TeleportTab:AddButton({
+    Name = "Teleport tới Train",
+    Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(100, 5, 100))
+    end
+})
+
+--// Utility Tab
+UtilityTab:AddButton({
+    Name = "Speed Hack",
+    Callback = function()
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 100
+    end
+})
+
+UtilityTab:AddButton({
+    Name = "Reset Speed",
+    Callback = function()
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+    end
+})
+
+--// Cuối cùng: Init UI
+OrionLib:Init()
+
+-- Cập nhật NPCs ban đầu
+updateNPCs()
