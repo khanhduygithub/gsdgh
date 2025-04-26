@@ -38,13 +38,6 @@ local Camera = Workspace.CurrentCamera
 local MyCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local NPCList = {}
 local CharacterAddedConnection = nil
-local locations = {
-    ["Sterling"] = CFrame.new(347, 87, -455),
-    ["Spawn"] = CFrame.new(0, 50, 0),
-    ["Boss Area"] = CFrame.new(1200, 100, -600),
-    ["Safe Zone"] = CFrame.new(100, 100, -100),
-    -- Bạn có thể thêm địa điểm khác vào đây
-}
 -- Настройки ESP
 local ESP = {
     Enabled = false,
