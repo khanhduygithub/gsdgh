@@ -39,26 +39,6 @@ local MyCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local NPCList = {}
 local CharacterAddedConnection = nil
 -- Настройки ESP
--- Bảng các địa điểm teleport
-local teleportLocations = {
-    ["Sterling"] = CFrame.new(347, 87, -455),
-    ["Spawn"] = CFrame.new(0, 50, 0),
-    ["Boss Room"] = CFrame.new(1200, 100, -600),
-}
-
--- Tạo nút button cho mỗi địa điểm
-for locationName, locationCFrame in pairs(teleportLocations) do
-    TeleTab:CreateButton({
-        Name = "Teleport to " .. locationName,
-        Callback = function()
-            local player = game.Players.LocalPlayer
-            if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                player.Character.HumanoidRootPart.CFrame = locationCFrame
-            end
-        end
-    })
-end
-
 local ESP = {
     Enabled = false,
     Mode = "Boxes",
