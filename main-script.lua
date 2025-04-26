@@ -705,18 +705,6 @@ ESPTab:CreateSlider({
     end
 })
 
-TeleTab:CreateDropdown({
-    Name = "Select Location",
-    Options = table.keys(locations),
-    CurrentOption = "Sterling",
-    Callback = function(selected)
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local hrp = character:WaitForChild("HumanoidRootPart")
-        hrp.CFrame = locations[selected]
-    end
-	end
-})
 ChangelogsTab:CreateSection("Version 0.5.2")
 ChangelogsTab:CreateParagraph({
     Title = "ESP System Improvements:",
