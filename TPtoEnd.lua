@@ -78,7 +78,7 @@ local function SwitchTab(tabName)
         AimbotButton.MouseButton1Click:Connect(function()
             aimbotEnabled = not aimbotEnabled
             if aimbotEnabled then
-                loadstring(game:HttpGet("https://pastebin.com/raw/YOUR_AIMBOT_LINK"))()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/main/aimbotScript.lua"))()
             end
         end)
 
@@ -98,16 +98,53 @@ local function SwitchTab(tabName)
         end)
 
     elseif tabName == "Utility" then
-        -- Utility Content (Future Features)
-        local InfoLabel = Instance.new("TextLabel", ContentFrame)
-        InfoLabel.Size = UDim2.new(0, 250, 0, 50)
-        InfoLabel.Position = UDim2.new(0, 20, 0, 20)
-        InfoLabel.Text = "Coming Soon..."
-        InfoLabel.BackgroundTransparency = 1
-        InfoLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-        InfoLabel.Font = Enum.Font.Gotham
-        InfoLabel.TextSize = 18
-        InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+        -- Utility Content (Add Extra Features)
+        local GodModeButton = Instance.new("TextButton", ContentFrame)
+        GodModeButton.Size = UDim2.new(0, 200, 0, 50)
+        GodModeButton.Position = UDim2.new(0, 20, 0, 20)
+        GodModeButton.Text = "Toggle Godmode"
+        GodModeButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        GodModeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        GodModeButton.Font = Enum.Font.GothamBold
+        GodModeButton.TextSize = 16
+
+        local godModeEnabled = false
+
+        GodModeButton.MouseButton1Click:Connect(function()
+            godModeEnabled = not godModeEnabled
+            if godModeEnabled then
+                -- Activate Godmode here (example: invincibility, no damage, etc.)
+                -- Replace with the actual Godmode code
+                game.Players.LocalPlayer.Character.Humanoid.MaxHealth = math.huge
+                game.Players.LocalPlayer.Character.Humanoid.Health = math.huge
+            else
+                -- Deactivate Godmode
+                game.Players.LocalPlayer.Character.Humanoid.MaxHealth = 100
+                game.Players.LocalPlayer.Character.Humanoid.Health = 100
+            end
+        end)
+
+        local SpeedButton = Instance.new("TextButton", ContentFrame)
+        SpeedButton.Size = UDim2.new(0, 200, 0, 50)
+        SpeedButton.Position = UDim2.new(0, 20, 0, 80)
+        SpeedButton.Text = "Toggle Speed"
+        SpeedButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        SpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        SpeedButton.Font = Enum.Font.GothamBold
+        SpeedButton.TextSize = 16
+
+        local speedEnabled = false
+
+        SpeedButton.MouseButton1Click:Connect(function()
+            speedEnabled = not speedEnabled
+            if speedEnabled then
+                -- Enable Speed here (e.g., increase walk speed)
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 100
+            else
+                -- Reset Speed
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+            end
+        end)
     end
 end
 
@@ -131,3 +168,23 @@ end
 
 SwitchTab("Attack") -- Default Tab
 
+--// Moon Icon Button (Toggle Menu)
+local MoonButton = Instance.new("TextButton", ScreenGui)
+MoonButton.Size = UDim2.new(0, 40, 0, 40)
+MoonButton.Position = UDim2.new(0.5, -20, 0, 20)
+MoonButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MoonButton.Text = "🌙"
+MoonButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MoonButton.Font = Enum.Font.GothamBold
+MoonButton.TextSize = 24
+MoonButton.BorderSizePixel = 0
+MoonButton.BackgroundTransparency = 1
+
+-- Toggle Menu Visibility
+local menuVisible = true
+
+MoonButton.MouseButton1Click:Connect(function()
+    menuVisible = not menuVisible
+    MainFrame.Visible = menuVisible
+    MoonButton.Text = menuVisible and "🌙" or "🌑"
+end)
