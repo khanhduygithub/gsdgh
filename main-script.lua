@@ -65,6 +65,7 @@ local Settings = {
     Noclip = false,
     AntiFall = false,
     AntiAFK = false,
+    teleport = false,
         Enabled = false,
     FOV = 150,
     Smoothness = 0.65
@@ -532,14 +533,15 @@ Workspace.DescendantRemoving:Connect(function(descendant)
     end
 end)
 
--- Link teleportation to the button click
 TPBtn.MouseButton1Click:Connect(function()
     -- Check if teleportation is enabled in settings
     if Settings.teleport then
         local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if root then
-            -- Teleport to the position when toggle is enabled
+            -- Teleport to the target position when the toggle is enabled
             root.CFrame = CFrame.new(9999, 100, 0)
+        else
+            warn("HumanoidRootPart not found!")
         end
     end
 end)
