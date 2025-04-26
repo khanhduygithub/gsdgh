@@ -418,9 +418,16 @@ raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 local validNPCs = {}
 
 local function isNPC(obj)
-    return obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("Head")
-        and obj:FindFirstChild("HumanoidRootPart") and not game.Players:GetPlayerFromCharacter(obj)
+    return obj:IsA("Model")
+    and obj:FindFirstChild("Humanoid")
+    and obj.Humanoid.Health > 0 -- Sống mới nhận
+    and obj:FindFirstChild("Head")
+    and obj:FindFirstChild("HumanoidRootPart")
+    and not game:GetService("Players"):GetPlayerFromCharacter(obj)
+    and obj.Name ~= "Unicorn"
+    and obj.Name ~= "Model_Horse"
 end
+
 
 local function updateNPCs()
     validNPCs = {}
@@ -451,14 +458,18 @@ local function getTarget()
     raycastParams.FilterDescendantsInstances = {Player.Character}
 
     for _, npc in ipairs(validNPCs) do
-        local predictedPos = predictPos(npc)
-        if predictedPos then
+        if npc and npc:FindFirstChild("Humanoid") and npc.Humanoid.Health > 0 then -- Kiểm tra sống
+            local predictedPos = predictPos(npc)
             local screenPos, visible = Cam:WorldToViewportPoint(predictedPos)
             if visible and screenPos.Z > 0 then
-                local ray = workspace:Raycast(Cam.CFrame.Position, (predictedPos - Cam.CFrame.Position).Unit * 1000, raycastParams)
+                local ray = workspace:Raycast(
+                    Cam.CFrame.Position,
+                    (predictedPos - Cam.CFrame.Position).Unit * 1000,
+                    raycastParams
+                )
                 if ray and ray.Instance:IsDescendantOf(npc) then
                     local distance = (Vector2.new(screenPos.X, screenPos.Y) - viewportCenter).Magnitude
-                    if distance < minDistance and distance < Settings.FOV then
+                    if distance < minDistance and distance < fov then
                         minDistance = distance
                         nearest = npc
                     end
@@ -466,6 +477,7 @@ local function getTarget()
             end
         end
     end
+
     return nearest
 end
 
