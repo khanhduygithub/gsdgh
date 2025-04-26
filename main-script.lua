@@ -391,7 +391,108 @@ local function SetFastProximityPrompt(enabled)
         end))
     end
 end
+local function isNPC(obj)
+    return obj:IsA("Model") 
+    and obj:FindFirstChild("Humanoid") 
+    and obj.Humanoid.Health > 0 
+    and obj:FindFirstChild("Head") 
+    and obj:FindFirstChild("HumanoidRootPart") 
+    and not game:GetService("Players"):GetPlayerFromCharacter(obj)
+    and obj.Name ~= "Unicorn"
+    and obj.Name ~= "Model_Horse"
+end
 
+-- Cập nhật danh sách NPC
+local function updateNPCs()
+    validNPCs = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if isNPC(obj) then
+            table.insert(validNPCs, obj)
+        end
+    end
+end
+
+-- Cập nhật vị trí FOV
+local function updateDrawings()
+    FOVring.Position = Cam.ViewportSize / 2
+    FOVring.Radius = fov * (Cam.ViewportSize.Y / 1080)
+end
+
+-- Thuật toán dự đoán vị trí NPC
+local function predictPos(target)
+    local rootPart = target:FindFirstChild("HumanoidRootPart")
+    local head = target:FindFirstChild("Head")
+    if not rootPart or not head then 
+        return head and head.Position or rootPart and rootPart.Position 
+    end
+    local velocity = rootPart.Velocity
+    local predictionTime = 0.02
+    local basePosition = rootPart.Position + velocity * predictionTime
+    local headOffset = head.Position - rootPart.Position
+    return basePosition + headOffset
+end
+
+-- Tìm mục tiêu gần nhất trong FOV
+local function getTarget()
+    local nearest, minDistance = nil, math.huge
+    local viewportCenter = Cam.ViewportSize / 2
+    raycastParams.FilterDescendantsInstances = {Player.Character}
+
+    for _, npc in ipairs(validNPCs) do
+        local predictedPos = predictPos(npc)
+        local screenPos, visible = Cam:WorldToViewportPoint(predictedPos)
+        if visible and screenPos.Z > 0 then
+            local ray = workspace:Raycast(
+                Cam.CFrame.Position, 
+                (predictedPos - Cam.CFrame.Position).Unit * 1000, 
+                raycastParams
+            )
+            if ray and ray.Instance:IsDescendantOf(npc) then
+                local distance = (Vector2.new(screenPos.X, screenPos.Y) - viewportCenter).Magnitude
+                if distance < minDistance and distance < fov then
+                    minDistance = distance
+                    nearest = npc
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+-- Điều chỉnh góc nhìn để aim
+local function aim(targetPosition)
+    local currentCF = Cam.CFrame
+    local targetDirection = (targetPosition - currentCF.Position).Unit
+    local smoothFactor = 0.65
+    local newLookVector = currentCF.LookVector:Lerp(targetDirection, smoothFactor)
+    Cam.CFrame = CFrame.new(currentCF.Position, currentCF.Position + newLookVector)
+end
+
+-- Vòng lặp chính
+local lastUpdate = 0
+local UPDATE_INTERVAL = 0.3
+
+RunService.Heartbeat:Connect(function(dt)
+    updateDrawings()
+    lastUpdate = lastUpdate + dt
+    if lastUpdate >= UPDATE_INTERVAL then
+        updateNPCs()
+        lastUpdate = 0
+    end
+
+    if isAiming then
+        local target = getTarget()
+        if target then
+            local predictedPosition = predictPos(target)
+            aim(predictedPosition)
+            NPCNameLabel.Text = "NPC: " .. target.Name
+        else
+            NPCNameLabel.Text = "NPC: None"
+        end
+    else
+        NPCNameLabel.Text = "NPC: None"
+    end
+end)
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
     Lighting.Brightness = 2
@@ -407,7 +508,7 @@ AimbotTab:CreateToggle({
     Name = "Aimbot",
     CurrentValue = false,
     Callback = function(Value)
-        Settings.aimbot = Value
+        Settings.aim = Value
     end,
 })
 -- UI элементы
