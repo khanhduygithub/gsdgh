@@ -398,115 +398,135 @@ end
 
 
 local RunService = game:GetService("RunService")
-local Cam = workspace.CurrentCamera
-local Player = game.Players.LocalPlayer
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
 
--- Vẽ FOV
-local FOVring = Drawing.new("Circle")
-FOVring.Visible = false
-FOVring.Thickness = 2
-FOVring.Color = Color3.fromRGB(128, 0, 128)
-FOVring.Filled = false
-FOVring.Radius = Settings.FOV
-FOVring.Position = Cam.ViewportSize / 2
+-- FOV Circle
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Visible = false
+FOVCircle.Thickness = 2
+FOVCircle.Color = Color3.fromRGB(128, 0, 128)
+FOVCircle.Filled = false
+FOVCircle.Radius = Settings.FOV
+FOVCircle.Position = Camera.ViewportSize / 2
 
--- Raycast setup
-local raycastParams = RaycastParams.new()
-raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+-- Variables
+local ValidNPCs = {}
+local RaycastParams = RaycastParams.new()
+RaycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+RaycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
 
--- NPC hợp lệ
-local validNPCs = {}
+-- Functions
 
-local function isNPC(obj)
-    return obj:IsA("Model")
-    and obj:FindFirstChild("Humanoid")
-    and obj.Humanoid.Health > 0 -- Sống mới nhận
-    and obj:FindFirstChild("Head")
-    and obj:FindFirstChild("HumanoidRootPart")
-    and not game:GetService("Players"):GetPlayerFromCharacter(obj)
-    and obj.Name ~= "Unicorn"
-    and obj.Name ~= "Model_Horse"
+local function isNPC(model)
+    return model:IsA("Model")
+        and model:FindFirstChild("Humanoid")
+        and model.Humanoid.Health > 0
+        and model:FindFirstChild("Head")
+        and model:FindFirstChild("HumanoidRootPart")
+        and not Players:GetPlayerFromCharacter(model)
+        and model.Name ~= "Unicorn"
+        and model.Name ~= "Model_Horse"
 end
-
 
 local function updateNPCs()
-    validNPCs = {}
-    for _, obj in ipairs(workspace:GetDescendants()) do
+    -- Làm mới danh sách NPC
+    local temp = {}
+    for _, obj in ipairs(Workspace:GetDescendants()) do
         if isNPC(obj) then
-            table.insert(validNPCs, obj)
+            table.insert(temp, obj)
         end
     end
-end
-
-local function updateFOV()
-    FOVring.Position = Cam.ViewportSize / 2
-    FOVring.Radius = Settings.FOV * (Cam.ViewportSize.Y / 1080)
+    ValidNPCs = temp
 end
 
 local function predictPos(target)
-    local rootPart = target:FindFirstChild("HumanoidRootPart")
+    local root = target:FindFirstChild("HumanoidRootPart")
     local head = target:FindFirstChild("Head")
-    if not rootPart or not head then return nil end
-    local velocity = rootPart.Velocity
+    if not root or not head then return nil end
+
+    local velocity = root.Velocity
     local predictionTime = 0.02
-    return (rootPart.Position + velocity * predictionTime) + (head.Position - rootPart.Position)
+    local predictedRoot = root.Position + velocity * predictionTime
+    local headOffset = head.Position - root.Position
+
+    return predictedRoot + headOffset
 end
 
-local function getTarget()
-    local nearest, minDistance = nil, math.huge
-    local viewportCenter = Cam.ViewportSize / 2
-    raycastParams.FilterDescendantsInstances = {Player.Character}
+local function getClosestTarget()
+    local closestTarget = nil
+    local minDistance = math.huge
+    local center = Camera.ViewportSize / 2
 
-    for _, npc in ipairs(validNPCs) do
-        if npc and npc:FindFirstChild("Humanoid") and npc.Humanoid.Health > 0 then -- Kiểm tra sống
-            local predictedPos = predictPos(npc)
-            local screenPos, visible = Cam:WorldToViewportPoint(predictedPos)
-            if visible and screenPos.Z > 0 then
-                local ray = workspace:Raycast(
-                    Cam.CFrame.Position,
-                    (predictedPos - Cam.CFrame.Position).Unit * 1000,
-                    raycastParams
-                )
-                if ray and ray.Instance:IsDescendantOf(npc) then
-                    local distance = (Vector2.new(screenPos.X, screenPos.Y) - viewportCenter).Magnitude
-                    if distance < minDistance and distance < fov then
-                        minDistance = distance
-                        nearest = npc
+    for _, npc in ipairs(ValidNPCs) do
+        if npc and npc:FindFirstChild("Humanoid") and npc.Humanoid.Health > 0 then
+            local predicted = predictPos(npc)
+            if predicted then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(predicted)
+                if onScreen and screenPos.Z > 0 then
+                    local ray = Workspace:Raycast(Camera.CFrame.Position, (predicted - Camera.CFrame.Position).Unit * 1000, RaycastParams)
+                    if ray and ray.Instance:IsDescendantOf(npc) then
+                        local distance = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+                        if distance < minDistance and distance < Settings.FOV then
+                            minDistance = distance
+                            closestTarget = npc
+                        end
                     end
                 end
             end
         end
     end
 
-    return nearest
+    return closestTarget
 end
 
-local function aimAt(pos)
-    local currentCF = Cam.CFrame
-    local direction = (pos - currentCF.Position).Unit
-    local newLookVector = currentCF.LookVector:Lerp(direction, Settings.Smoothness)
-    Cam.CFrame = CFrame.new(currentCF.Position, currentCF.Position + newLookVector)
+local function aimAt(targetPos)
+    local camCF = Camera.CFrame
+    local direction = (targetPos - camCF.Position).Unit
+    local smooth = 0.65
+    local newLookVector = camCF.LookVector:Lerp(direction, smooth)
+    Camera.CFrame = CFrame.new(camCF.Position, camCF.Position + newLookVector)
 end
 
+-- Main loop
 local lastUpdate = 0
-local UPDATE_INTERVAL = 0.3
+local UPDATE_RATE = 0.3
 
 RunService.Heartbeat:Connect(function(dt)
-    updateFOV()
+    -- Update FOV Circle
+    FOVCircle.Position = Camera.ViewportSize / 2
+    FOVCircle.Radius = Settings.FOV * (Camera.ViewportSize.Y / 1080)
+    FOVCircle.Visible = Settings.Enabled
+
+    -- Update NPC list theo thời gian
     lastUpdate = lastUpdate + dt
-    if lastUpdate >= UPDATE_INTERVAL then
+    if lastUpdate >= UPDATE_RATE then
         updateNPCs()
         lastUpdate = 0
     end
 
-    FOVring.Visible = Settings.Enabled
-
+    -- Nếu Aimbot đang bật
     if Settings.Enabled then
-        local target = getTarget()
+        local target = getClosestTarget()
         if target then
-            local predict = predictPos(target)
-            if predict then
-                aimAt(predict)
+            local predictedPos = predictPos(target)
+            if predictedPos then
+                aimAt(predictedPos)
+            end
+        end
+    end
+end)
+
+-- Auto Xóa nếu NPC chết
+Workspace.DescendantRemoving:Connect(function(descendant)
+    if table.find(ValidNPCs, descendant) then
+        for i = #ValidNPCs, 1, -1 do
+            if ValidNPCs[i] == descendant then
+                table.remove(ValidNPCs, i)
+                break
             end
         end
     end
