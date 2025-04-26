@@ -65,6 +65,9 @@ local Settings = {
     Noclip = false,
     AntiFall = false,
     AntiAFK = false,
+        Enabled = false,
+    FOV = 150,
+    Smoothness = 0.65
 }
 
 -- Табы
@@ -392,6 +395,111 @@ local function SetFastProximityPrompt(enabled)
         end))
     end
 end
+
+
+local RunService = game:GetService("RunService")
+local Cam = workspace.CurrentCamera
+local Player = game.Players.LocalPlayer
+
+-- Vẽ FOV
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = false
+FOVring.Thickness = 2
+FOVring.Color = Color3.fromRGB(128, 0, 128)
+FOVring.Filled = false
+FOVring.Radius = Settings.FOV
+FOVring.Position = Cam.ViewportSize / 2
+
+-- Raycast setup
+local raycastParams = RaycastParams.new()
+raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+-- NPC hợp lệ
+local validNPCs = {}
+
+local function isNPC(obj)
+    return obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("Head")
+        and obj:FindFirstChild("HumanoidRootPart") and not game.Players:GetPlayerFromCharacter(obj)
+end
+
+local function updateNPCs()
+    validNPCs = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if isNPC(obj) then
+            table.insert(validNPCs, obj)
+        end
+    end
+end
+
+local function updateFOV()
+    FOVring.Position = Cam.ViewportSize / 2
+    FOVring.Radius = Settings.FOV * (Cam.ViewportSize.Y / 1080)
+end
+
+local function predictPos(target)
+    local rootPart = target:FindFirstChild("HumanoidRootPart")
+    local head = target:FindFirstChild("Head")
+    if not rootPart or not head then return nil end
+    local velocity = rootPart.Velocity
+    local predictionTime = 0.02
+    return (rootPart.Position + velocity * predictionTime) + (head.Position - rootPart.Position)
+end
+
+local function getTarget()
+    local nearest, minDistance = nil, math.huge
+    local viewportCenter = Cam.ViewportSize / 2
+    raycastParams.FilterDescendantsInstances = {Player.Character}
+
+    for _, npc in ipairs(validNPCs) do
+        local predictedPos = predictPos(npc)
+        if predictedPos then
+            local screenPos, visible = Cam:WorldToViewportPoint(predictedPos)
+            if visible and screenPos.Z > 0 then
+                local ray = workspace:Raycast(Cam.CFrame.Position, (predictedPos - Cam.CFrame.Position).Unit * 1000, raycastParams)
+                if ray and ray.Instance:IsDescendantOf(npc) then
+                    local distance = (Vector2.new(screenPos.X, screenPos.Y) - viewportCenter).Magnitude
+                    if distance < minDistance and distance < Settings.FOV then
+                        minDistance = distance
+                        nearest = npc
+                    end
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+local function aimAt(pos)
+    local currentCF = Cam.CFrame
+    local direction = (pos - currentCF.Position).Unit
+    local newLookVector = currentCF.LookVector:Lerp(direction, Settings.Smoothness)
+    Cam.CFrame = CFrame.new(currentCF.Position, currentCF.Position + newLookVector)
+end
+
+local lastUpdate = 0
+local UPDATE_INTERVAL = 0.3
+
+RunService.Heartbeat:Connect(function(dt)
+    updateFOV()
+    lastUpdate = lastUpdate + dt
+    if lastUpdate >= UPDATE_INTERVAL then
+        updateNPCs()
+        lastUpdate = 0
+    end
+
+    FOVring.Visible = Settings.Enabled
+
+    if Settings.Enabled then
+        local target = getTarget()
+        if target then
+            local predict = predictPos(target)
+            if predict then
+                aimAt(predict)
+            end
+        end
+    end
+end)
+
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
     Lighting.Brightness = 2
@@ -403,98 +511,24 @@ local function enableFullbright()
         end
     end
 end
+AimbotTab:CreateSection("Main")
 AimbotTab:CreateToggle({
-    Name = "Aimbot", 
-    CurrentValue = false,
+    Name = "Aimbot",
+    CurrentValue = Settings.Enabled,
     Callback = function(state)
-        AimbotEnabled = state
+        Settings.Enabled = state
+    end
+})
+AimbotTab:CreateSlider({
+    Name = "FOV",
+    Range = {50, 500},
+    Increment = 10,
+    CurrentValue = Settings.FOV,
+    Callback = function(v)
+        Settings.FOV = v
     end
 })
 
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- Cài đặt
-local FOV_RADIUS = 90
-local HOTKEY = Enum.KeyCode.E -- Phím bấm bật/tắt
-
--- Vẽ vòng FOV
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Color = Color3.fromRGB(255, 0, 0)
-FOVCircle.Thickness = 2
-FOVCircle.Filled = false
-FOVCircle.Visible = false
-FOVCircle.Radius = FOV_RADIUS
-FOVCircle.Position = Camera.ViewportSize / 2
-
--- Hàm kiểm tra địch
-local function IsEnemy(model)
-    return model:IsA("Model")
-        and model:FindFirstChild("Humanoid")
-        and model:FindFirstChild("HumanoidRootPart")
-        and not Players:GetPlayerFromCharacter(model)
-        and model.Humanoid.Health > 0
-end
-
--- Hàm tìm mục tiêu gần nhất
-local function GetClosestEnemy()
-    local closestEnemy = nil
-    local minDistance = FOV_RADIUS
-    local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-
-    for _, enemy in ipairs(workspace:GetChildren()) do
-        if IsEnemy(enemy) then
-            local hrp = enemy:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                local screenPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                if onScreen and screenPos.Z > 0 then
-                    local dist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
-                    if dist < minDistance then
-                        minDistance = dist
-                        closestEnemy = hrp
-                    end
-                end
-            end
-        end
-    end
-
-    return closestEnemy
-end
-
--- Hàm aim
-local function AimAt(target)
-    if target then
-        local camCF = Camera.CFrame
-        local direction = (target.Position - camCF.Position).Unit
-        local newCF = CFrame.new(camCF.Position, camCF.Position + direction)
-        Camera.CFrame = camCF:Lerp(newCF, 0.3) -- Aim mượt
-    end
-end
-
--- Theo dõi RenderStepped
-RunService.RenderStepped:Connect(function()
-    if AimbotEnabled then
-        FOVCircle.Visible = true
-        FOVCircle.Position = Camera.ViewportSize / 2
-        local target = GetClosestEnemy()
-        if target then
-            AimAt(target)
-        end
-    else
-        FOVCircle.Visible = false
-    end
-end)
-
-
--- Toggle bằng Hotkey
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == HOTKEY then
-        AimbotEnabled = not AimbotEnabled
-    end
-end)
 
 -- UI элементы
 FullbrightTab:CreateToggle({
