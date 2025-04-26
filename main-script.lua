@@ -209,40 +209,7 @@ local function getTarget()
     return nearest
 end
 
-local function aim(targetPosition)
-    local currentCF = Cam.CFrame
-    local targetDirection = (targetPosition - currentCF.Position).Unit
-    local smoothFactor = 0.581
-    local newLookVector = currentCF.LookVector:Lerp(targetDirection, smoothFactor)
-    Cam.CFrame = CFrame.new(currentCF.Position, currentCF.Position + newLookVector)
-end
 
-local heartbeat = RunService.Heartbeat
-local lastUpdate = 0
-local UPDATE_INTERVAL = 0.4
-
-heartbeat:Connect(function(dt)
-    updateDrawings()
-    lastUpdate = lastUpdate + dt
-    if lastUpdate >= UPDATE_INTERVAL then
-        updateNPCs()
-        lastUpdate = 0
-    end
-    if isAiming then
-        local target = getTarget()
-        if target then
-            local predictedPosition = predictPos(target)
-            aim(predictedPosition)
-        end
-    end
-end)
-
-ToggleButton.MouseButton1Click:Connect(function()
-    isAiming = not isAiming
-    FOVring.Visible = isAiming
-    ToggleButton.Text = "AIMBOT: " .. (isAiming and "ON" or "OFF")
-    ToggleButton.TextColor3 = isAiming and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
-end)
 
 local dragging, dragInput, dragStart, startPos
 
@@ -642,7 +609,7 @@ local function enableFullbright()
     end
 end
 AimbotTab:CreateToggle({
-    Name = "Aim",
+    Name = "Aim bot",
     CurrentValue = false,
     Callback = function(Value)
         Settings.aimbot = Value
