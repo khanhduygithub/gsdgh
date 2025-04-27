@@ -533,18 +533,6 @@ Workspace.DescendantRemoving:Connect(function(descendant)
     end
 end)
 
-TPBtn.MouseButton1Click:Connect(function()
-    -- Check if teleportation is enabled in settings
-    if Settings.teleport then
-        local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if root then
-            -- Teleport to the target position when the toggle is enabled
-            root.CFrame = CFrame.new(9999, 100, 0)
-        else
-            warn("HumanoidRootPart not found!")
-        end
-    end
-end)
 
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
@@ -713,14 +701,36 @@ ESPTab:CreateSlider({
     end
 })
 
-TeleTab:CreateToggle({
-    Name = "The End",
-    CurrentValue = false,
-    Callback = function(Value)
-        Settings.teleport = Value
-    end,
+TeleTab:CreateDropdown({
+    Name = "Select Teleport Location",
+    Options = table.keys(teleportLocations),
+    CurrentOption = nil,
+    Callback = function(option)
+        selectedLocation = teleportLocations[option]
+    end
 })
 
+-- Tạo Nút Teleport
+TeleTab:CreateButton({
+    Name = "Teleport!",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        if selectedLocation and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = selectedLocation
+        else
+            warn("Bạn chưa chọn vị trí hoặc nhân vật chưa sẵn sàng!")
+        end
+    end
+})
+
+local teleportLocations = {
+    ["Sterling"] = CFrame.new(347, 87, -455),
+    ["Spawn"] = CFrame.new(0, 50, 0),
+    ["Boss Room"] = CFrame.new(1200, 100, -600),
+    ["Arena"] = CFrame.new(500, 70, 1000),
+    ["Underwater Cave"] = CFrame.new(-200, 30, -1500),
+}
+local selectedLocation = nil
 ChangelogsTab:CreateSection("Version 0.5.2")
 ChangelogsTab:CreateParagraph({
     Title = "ESP System Improvements:",
