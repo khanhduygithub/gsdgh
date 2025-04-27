@@ -64,13 +64,11 @@ local Settings = {
     fullbright = false,
     Noclip = false,
     AntiFall = false,
-    autobond = false,
     AntiAFK = false,
     teleport = false,
         Enabled = false,
-    FOV = 150,
+    FOV = 90,
     Smoothness = 0.65
-    	bondDelay = 0.5
 }
 
 -- Табы
@@ -535,23 +533,6 @@ Workspace.DescendantRemoving:Connect(function(descendant)
     end
 end)
 
-local function collectBonds()
-    for _, object in pairs(Workspace:GetDescendants()) do
-        if object.Name == "Bond" and object:IsA("BasePart") then
-            object.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 0, -5)
-        end
-    end
-end
-
--- AutoBond function
-local function AutoBond()
-    while Running and task.wait(Settings.bondDelay) do
-        collectBonds()
-    end
-end
-
--- UI Toggle
-
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
     Lighting.Brightness = 2
@@ -589,30 +570,6 @@ FullbrightTab:CreateToggle({
     Callback = function(Value)
         Settings.fullbright = Value
     end,
-})
-UtilityTab:CreateSection("AutoBond")
-UtilityTab:CreateToggle({
-    Name = "AutoBond",
-    CurrentValue = Settings.autobond,
-    Callback = function(v)
-        Settings.autobond = v
-        Running = v
-        if v then
-            task.spawn(AutoBond)
-        end
-    end
-})
-
--- Optional: UI Slider to adjust Delay (nếu bạn muốn thêm)
-UtilityTab:CreateSlider({
-    Name = "Bond Delay",
-    Min = 0.1,
-    Max = 2,
-    Default = Settings.bondDelay,
-    Increment = 0.1,
-    Callback = function(v)
-        Settings.bondDelay = v
-    end
 })
 UtilityTab:CreateSection("Noclip")
 UtilityTab:CreateToggle({
