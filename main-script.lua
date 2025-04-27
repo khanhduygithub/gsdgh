@@ -1,5 +1,5 @@
 -- Загрузка Rayfield UI
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/xwarehub.lua'))()
 local scrVer = "0.5.2 STABLE"
 
 -- Создание окна
