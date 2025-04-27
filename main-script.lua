@@ -533,14 +533,6 @@ Workspace.DescendantRemoving:Connect(function(descendant)
     end
 end)
 
-local teleportLocations = {
-    ["Sterling"] = CFrame.new(347, 87, -455),
-    ["Spawn"] = CFrame.new(0, 50, 0),
-    ["Boss Room"] = CFrame.new(1200, 100, -600),
-    ["Arena"] = CFrame.new(500, 70, 1000),
-    ["Underwater Cave"] = CFrame.new(-200, 30, -1500),
-}
-local selectedLocation = nil
 
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
@@ -708,28 +700,33 @@ ESPTab:CreateSlider({
         ESP.MaxDistance = v
     end
 })
+local teleportLocations = {
+    ["Train"] = CFrame.new(0, 50, 0), -- Toạ độ Train Station (bạn thay tọá đúng theo game)
+    ["Sterling"] = CFrame.new(347, 87, -455),
+    ["Tesla"] = CFrame.new(1200, 100, -600),
+    ["Fort"] = CFrame.new(800, 120, -1200),
+}
 
-TeleTab:CreateDropdown({
-    Name = "Select Teleport Location",
-    Options = table.keys(teleportLocations),
-    CurrentOption = nil,
-    Callback = function(option)
-        selectedLocation = teleportLocations[option]
-    end
-})
-
--- Tạo Nút Teleport
-TeleTab:CreateButton({
-    Name = "Teleport!",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        if selectedLocation and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = selectedLocation
-        else
-            warn("Bạn chưa chọn vị trí hoặc nhân vật chưa sẵn sàng!")
+-- Tạo Button cho mỗi vị trí
+for locationName, locationCFrame in pairs(teleportLocations) do
+    TeleTab:CreateButton({
+        Name = "Teleport to " .. locationName,
+        Callback = function()
+            local player = game.Players.LocalPlayer
+            if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame = locationCFrame
+                Rayfield:Notify({
+                    Title = "Teleport",
+                    Content = "Teleported to " .. locationName .. "!",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            else
+                warn("Không tìm thấy nhân vật hoặc HumanoidRootPart")
+            end
         end
-    end
-})
+    })
+end
 ChangelogsTab:CreateSection("Version 0.5.2")
 ChangelogsTab:CreateParagraph({
     Title = "ESP System Improvements:",
