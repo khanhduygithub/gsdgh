@@ -61,16 +61,16 @@ local ESP = {
 -- Настройки утилит
 local Settings = {
 	AimbotEnabled = false,
-	autobond = false,
     fullbright = false,
     Noclip = false,
     AntiFall = false,
+    autobond = false,
     AntiAFK = false,
     teleport = false,
-    Enabled = false,
-	bondDelay = 0.5
-    FOV = 150
+        Enabled = false,
+    FOV = 150,
     Smoothness = 0.65
+    	bondDelay = 0.5
 }
 
 -- Табы
@@ -551,18 +551,6 @@ local function AutoBond()
 end
 
 -- UI Toggle
-UtilityTab:CreateSection("AutoBond")
-UtilityTab:CreateToggle({
-    Name = "AutoBond",
-    CurrentValue = Settings.autobond,
-    Callback = function(v)
-        Settings.autobond = v
-        Running = v
-        if v then
-            task.spawn(AutoBond)
-        end
-    end
-})
 
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
