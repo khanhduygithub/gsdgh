@@ -533,6 +533,14 @@ Workspace.DescendantRemoving:Connect(function(descendant)
     end
 end)
 
+local teleportLocations = {
+    ["Sterling"] = CFrame.new(347, 87, -455),
+    ["Spawn"] = CFrame.new(0, 50, 0),
+    ["Boss Room"] = CFrame.new(1200, 100, -600),
+    ["Arena"] = CFrame.new(500, 70, 1000),
+    ["Underwater Cave"] = CFrame.new(-200, 30, -1500),
+}
+local selectedLocation = nil
 
 local function enableFullbright()
     Lighting.Ambient = Color3.new(1, 1, 1)
@@ -722,15 +730,6 @@ TeleTab:CreateButton({
         end
     end
 })
-
-local teleportLocations = {
-    ["Sterling"] = CFrame.new(347, 87, -455),
-    ["Spawn"] = CFrame.new(0, 50, 0),
-    ["Boss Room"] = CFrame.new(1200, 100, -600),
-    ["Arena"] = CFrame.new(500, 70, 1000),
-    ["Underwater Cave"] = CFrame.new(-200, 30, -1500),
-}
-local selectedLocation = nil
 ChangelogsTab:CreateSection("Version 0.5.2")
 ChangelogsTab:CreateParagraph({
     Title = "ESP System Improvements:",
