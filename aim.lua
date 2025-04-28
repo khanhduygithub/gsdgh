@@ -1,7 +1,7 @@
 repeat task.wait() until game:IsLoaded()
 repeat task.wait() until game.Players.LocalPlayer:FindFirstChild("PlayerGui")
 
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/discoart/FluentPlus/refs/heads/main/release.lua", true))() 
+local Fluent = loadstring(game:HttpGet("loadstring(game:HttpGet('https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/1KhanhDuyLib.lua'))()", true))() 
 
 local Window = Fluent:CreateWindow({
     Title = "Dead Rails",
