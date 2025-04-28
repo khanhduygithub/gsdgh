@@ -104,7 +104,110 @@ MainTab:AddToggle("Noclip", {
         end
     end
 })
+-- ========== KILL AURA SYSTEM ==========
+local KillAura = {
+    Enabled = false,
+    Range = 15,
+    Cooldown = 0.2,
+    Whitelist = {"Walker", "Cowboy", "Diddy Wolf"} -- NPC không hỗ trợ
+}
 
+local function IsValidTarget(npc)
+    -- Kiểm tra NPC hợp lệ
+    if not npc:IsA("Model") then return false end
+    if not npc:FindFirstChild("HumanoidRootPart") then return false end
+    if not npc:FindFirstChild("Humanoid") then return false end
+    if npc.Humanoid.Health <= 0 then return false end
+    if game.Players:GetPlayerFromCharacter(npc) then return false end
+    
+    -- Kiểm tra NPC trong whitelist
+    for _, name in ipairs(KillAura.Whitelist) do
+        if string.find(npc.Name, name) then
+            return false
+        end
+    end
+    
+    return true
+end
+
+local function GetNearestNPC()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return nil end
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+
+    local nearest, minDist = nil, KillAura.Range
+    for _, npc in ipairs(workspace:GetDescendants()) do
+        if IsValidTarget(npc) then
+            local dist = (npc.HumanoidRootPart.Position - root.Position).Magnitude
+            if dist < minDist then
+                nearest, minDist = npc, dist
+            end
+        end
+    end
+    return nearest
+end
+
+local function ExecuteKillAura()
+    local npc = GetNearestNPC()
+    if not npc then return end
+    
+    local dragRemote = game:GetService("ReplicatedStorage"):FindFirstChild("Shared") 
+        and game:GetService("ReplicatedStorage").Shared:FindFirstChild("Remotes") 
+        and game:GetService("ReplicatedStorage").Shared.Remotes:FindFirstChild("RequestStartDrag")
+    
+    if dragRemote then
+        dragRemote:FireServer(npc)
+        task.wait(0.5)
+        if npc:FindFirstChild("Humanoid") and npc.Humanoid.Health > 0 then
+            npc:BreakJoints()
+        end
+    end
+end
+
+-- ========== INTEGRATION WITH AIMBOT TAB ==========
+AimbotTab:AddSection({Title = "Kill Aura Settings"})
+
+AimbotTab:AddToggle("KillAuraToggle", {
+    Title = "Bật Kill Aura",
+    Description = "Tự động tiêu diệt NPC gần nhất",
+    Default = false,
+    Callback = function(state)
+        KillAura.Enabled = state
+        if state then
+            coroutine.wrap(function()
+                while KillAura.Enabled do
+                    ExecuteKillAura()
+                    task.wait(KillAura.Cooldown)
+                end
+            end)()
+        end
+    end
+})
+
+AimbotTab:AddSlider("KillAuraRange", {
+    Title = "Phạm vi Kill Aura",
+    Description = "Khoảng cách tối đa để kích hoạt",
+    Default = 15,
+    Min = 5,
+    Max = 30,
+    Rounding = 1,
+    Callback = function(value)
+        KillAura.Range = value
+    end
+})
+
+AimbotTab:AddSlider("KillAuraSpeed", {
+    Title = "Tốc độ Kill Aura",
+    Description = "Thời gian giữa các lần tấn công",
+    Default = 2,
+    Min = 1,
+    Max = 10,
+    Rounding = 1,
+    Callback = function(value)
+        KillAura.Cooldown = value/10
+    end
+})
 -- ========== AIMBOT TAB ==========
 local AimbotSection = AimbotTab:AddSection("Aimbot Settings")
 
