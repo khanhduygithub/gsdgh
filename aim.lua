@@ -1,17 +1,17 @@
--- Load thư viện đúng link
+-- Load thư viện (link đúng đã fix)
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/main/1KhanhDuyLib.lua"))()
 
 local Window = Library:CreateWindow("Script Menu")
 
--- Phím mở menu
-Library:ToggleUI(Enum.KeyCode.RightControl)
+-- Xóa dòng ToggleUI vì lib đã tự có nút mở menu
+-- Library:ToggleUI(Enum.KeyCode.RightControl)
 
 -- Các biến
 getgenv().FullbrightEnabled = false
 getgenv().NoclipEnabled = false
 getgenv().AimbotEnabled = false
 
--- Tab Main
+-- Main Tab
 local MainTab = Window:CreateTab("Main")
 
 MainTab:CreateToggle("Fullbright", false, function(state)
@@ -47,7 +47,7 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
--- Tab Aimbot
+-- Aimbot Tab
 local AimbotTab = Window:CreateTab("Aimbot")
 
 AimbotTab:CreateToggle("Enable Aimbot", false, function(state)
@@ -79,10 +79,11 @@ game:GetService("RunService").RenderStepped:Connect(function()
     end
 end)
 
--- Tab ESP (Bạn tự thêm sau)
+-- ESP Tab
 local ESPTab = Window:CreateTab("ESP")
+-- (Bạn thêm sau)
 
--- Tab Teleport
+-- Teleport Tab
 local TeleportTab = Window:CreateTab("Teleport")
 
 TeleportTab:CreateButton("Teleport to Spawn", function()
