@@ -293,10 +293,6 @@ Workspace.DescendantRemoving:Connect(function(descendant)
     end
 end)
 
--- ========== CÁC TAB KHÁC ==========
-EspTab:AddSection({ Title = "ESP Settings" })
-TeleportTab:AddSection({ Title = "Teleport Locations" })
-
 -- ========== ESP TAB ==========
 local EspSection = EspTab:AddSection("ESP Settings")
 
@@ -316,6 +312,10 @@ local ESP = {
     Highlights = {},
     Texts = {},
 }
+
+local CoreGui = game:GetService("CoreGui")
+local MyCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local ESPConnection = nil
 
 -- Thêm các control vào UI để cấu hình ESP
 EspSection:AddToggle("ESPEnabled", {
@@ -594,6 +594,27 @@ local function UpdateESP()
     end
 end
 
+local function ClearESP()
+    for character, box in pairs(ESP.Boxes) do
+        box:Remove()
+    end
+    
+    for character, highlight in pairs(ESP.Highlights) do
+        highlight:Destroy()
+    end
+    
+    for character, texts in pairs(ESP.Texts) do
+        texts.hpBar:Remove()
+        texts.hpText:Remove()
+        texts.nameText:Remove()
+        texts.distText:Remove()
+    end
+    
+    ESP.Boxes = {}
+    ESP.Highlights = {}
+    ESP.Texts = {}
+end
+
 -- Tắt hoặc bật ESP
 local function ToggleESP(enabled)
     ESP.Enabled = enabled
@@ -617,8 +638,21 @@ local function ToggleESP(enabled)
                 end
             end)
         end
+        
+        -- Create update loop
+        local updateLoop
+        updateLoop = RunService.Heartbeat:Connect(function()
+            if ESP.Enabled then
+                UpdateESP()
+            else
+                updateLoop:Disconnect()
+            end
+        end)
     end
 end
+
+-- ========== CÁC TAB KHÁC ==========
+TeleportTab:AddSection({ Title = "Teleport Locations" })
 
 TeleportTab:AddParagraph({
     Title = "Thông báo",
