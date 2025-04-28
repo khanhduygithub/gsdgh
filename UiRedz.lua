@@ -1,64 +1,75 @@
---// KhanhDuyLib.lua
-
+-- KhanhDuyLib.lua
 local KhanhDuyLib = {}
-KhanhDuyLib.__index = KhanhDuyLib
 
-function KhanhDuyLib:CreateWindow(Name)
-    local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-    local MainFrame = Instance.new("Frame", ScreenGui)
-    MainFrame.Size = UDim2.new(0, 500, 0, 400)
-    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Visible = true
-    MainFrame.Active = true
-    MainFrame.Draggable = true
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
-    local UICorner = Instance.new("UICorner", MainFrame)
-    UICorner.CornerRadius = UDim.new(0, 12)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KhanhDuyUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
 
-    local TabHolder = Instance.new("Frame", MainFrame)
-    TabHolder.Size = UDim2.new(1, 0, 0, 40)
-    TabHolder.BackgroundTransparency = 1
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 550, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -275, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BackgroundTransparency = 0.1
+MainFrame.BorderSizePixel = 0
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Parent = ScreenGui
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Visible = true
+MainFrame.ClipsDescendants = true
+MainFrame.AutomaticSize = Enum.AutomaticSize.None
 
-    local TabPages = Instance.new("Frame", MainFrame)
-    TabPages.Size = UDim2.new(1, 0, 1, -40)
-    TabPages.Position = UDim2.new(0, 0, 0, 40)
-    TabPages.BackgroundTransparency = 1
+local UICorner = Instance.new("UICorner", MainFrame)
+UICorner.CornerRadius = UDim.new(0, 12)
 
-    self.ScreenGui = ScreenGui
-    self.MainFrame = MainFrame
-    self.TabHolder = TabHolder
-    self.TabPages = TabPages
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
 
-    return self
-end
+local TopText = Instance.new("TextLabel")
+TopText.Text = "KhanhDuy"
+TopText.Font = Enum.Font.GothamBold
+TopText.TextSize = 20
+TopText.TextColor3 = Color3.fromRGB(255, 255, 255)
+TopText.BackgroundTransparency = 1
+TopText.Size = UDim2.new(1, 0, 1, 0)
+TopText.Parent = TopBar
 
-function KhanhDuyLib:CreateTab(Name)
-    local TabButton = Instance.new("TextButton", self.TabHolder)
-    TabButton.Size = UDim2.new(0, 100, 0, 30)
-    TabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    TabButton.Text = Name
-    TabButton.Font = Enum.Font.GothamBold
+local TabFolder = Instance.new("Folder", MainFrame)
+TabFolder.Name = "Tabs"
+
+function KhanhDuyLib:CreateTab(name)
+    local TabButton = Instance.new("TextButton")
+    TabButton.Text = name
+    TabButton.Font = Enum.Font.Gotham
     TabButton.TextSize = 14
-    TabButton.TextColor3 = Color3.fromRGB(255,255,255)
+    TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabButton.Size = UDim2.new(0, 130, 0, 30)
+    TabButton.Position = UDim2.new(0, 10 + #TabFolder:GetChildren()*140, 0, 45)
+    TabButton.Parent = MainFrame
 
-    local UICorner = Instance.new("UICorner", TabButton)
-    UICorner.CornerRadius = UDim.new(0,8)
+    local UICornerBtn = Instance.new("UICorner", TabButton)
+    UICornerBtn.CornerRadius = UDim.new(0, 8)
 
-    local TabFrame = Instance.new("Frame", self.TabPages)
-    TabFrame.Size = UDim2.new(1, 0, 1, 0)
+    local TabFrame = Instance.new("Frame")
+    TabFrame.Name = name.."Frame"
+    TabFrame.Size = UDim2.new(1, -20, 1, -90)
+    TabFrame.Position = UDim2.new(0, 10, 0, 80)
     TabFrame.BackgroundTransparency = 1
     TabFrame.Visible = false
-
-    local Layout = Instance.new("UIListLayout", TabFrame)
-    Layout.Padding = UDim.new(0, 5)
+    TabFrame.Parent = TabFolder
 
     TabButton.MouseButton1Click:Connect(function()
-        for _,v in pairs(self.TabPages:GetChildren()) do
-            if v:IsA("Frame") then
-                v.Visible = false
-            end
+        for _, tab in pairs(TabFolder:GetChildren()) do
+            tab.Visible = false
         end
         TabFrame.Visible = true
     end)
@@ -66,84 +77,70 @@ function KhanhDuyLib:CreateTab(Name)
     return TabFrame
 end
 
-function KhanhDuyLib:CreateButton(Tab, Name, Callback)
-    local Button = Instance.new("TextButton", Tab)
-    Button.Size = UDim2.new(0, 450, 0, 40)
-    Button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    Button.Text = Name
-    Button.Font = Enum.Font.Gotham
-    Button.TextSize = 14
-    Button.TextColor3 = Color3.fromRGB(255,255,255)
-
-    local UICorner = Instance.new("UICorner", Button)
-    UICorner.CornerRadius = UDim.new(0,8)
-
-    Button.MouseButton1Click:Connect(function()
-        pcall(Callback)
-    end)
-end
-
-function KhanhDuyLib:CreateToggle(Tab, Name, Callback)
-    local Toggle = Instance.new("TextButton", Tab)
-    Toggle.Size = UDim2.new(0, 450, 0, 40)
-    Toggle.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    Toggle.Text = Name .. ": OFF"
+function KhanhDuyLib:CreateToggle(parent, text, callback)
+    local Toggle = Instance.new("TextButton")
+    Toggle.Text = "[ OFF ] "..text
     Toggle.Font = Enum.Font.Gotham
     Toggle.TextSize = 14
-    Toggle.TextColor3 = Color3.fromRGB(255,255,255)
+    Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Toggle.Size = UDim2.new(0, 200, 0, 30)
+    Toggle.Parent = parent
 
-    local UICorner = Instance.new("UICorner", Toggle)
-    UICorner.CornerRadius = UDim.new(0,8)
+    local UICornerToggle = Instance.new("UICorner", Toggle)
+    UICornerToggle.CornerRadius = UDim.new(0, 8)
 
-    local state = false
+    local on = false
     Toggle.MouseButton1Click:Connect(function()
-        state = not state
-        Toggle.Text = Name .. ": " .. (state and "ON" or "OFF")
-        pcall(Callback, state)
+        on = not on
+        Toggle.Text = (on and "[ ON  ] " or "[ OFF ] ")..text
+        pcall(callback, on)
     end)
 end
 
-function KhanhDuyLib:CreateSlider(Tab, Name, Min, Max, Default, Callback)
-    local Slider = Instance.new("TextButton", Tab)
-    Slider.Size = UDim2.new(0, 450, 0, 40)
-    Slider.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    Slider.Text = Name .. ": " .. Default
+function KhanhDuyLib:CreateButton(parent, text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Text = text
+    Button.Font = Enum.Font.Gotham
+    Button.TextSize = 14
+    Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.Size = UDim2.new(0, 200, 0, 30)
+    Button.Parent = parent
+
+    local UICornerBtn = Instance.new("UICorner", Button)
+    UICornerBtn.CornerRadius = UDim.new(0, 8)
+
+    Button.MouseButton1Click:Connect(function()
+        pcall(callback)
+    end)
+end
+
+function KhanhDuyLib:CreateSlider(parent, text, min, max, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 200, 0, 50)
+    Frame.BackgroundTransparency = 1
+    Frame.Parent = parent
+
+    local Slider = Instance.new("TextButton")
+    Slider.Text = text.." ( "..tostring(min).." )"
     Slider.Font = Enum.Font.Gotham
     Slider.TextSize = 14
-    Slider.TextColor3 = Color3.fromRGB(255,255,255)
+    Slider.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    Slider.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Slider.Size = UDim2.new(0, 200, 0, 30)
+    Slider.Position = UDim2.new(0,0,0,0)
+    Slider.Parent = Frame
 
-    local UICorner = Instance.new("UICorner", Slider)
-    UICorner.CornerRadius = UDim.new(0,8)
+    local UICornerSlider = Instance.new("UICorner", Slider)
+    UICornerSlider.CornerRadius = UDim.new(0, 8)
 
-    local value = Default
+    local sliderValue = min
     Slider.MouseButton1Click:Connect(function()
-        value = value + 10
-        if value > Max then
-            value = Min
-        end
-        Slider.Text = Name .. ": " .. value
-        pcall(Callback, value)
+        sliderValue = math.clamp(sliderValue + 10, min, max)
+        Slider.Text = text.." ( "..tostring(sliderValue).." )"
+        pcall(callback, sliderValue)
     end)
 end
 
-function KhanhDuyLib:CreateToggleMenu()
-    local ToggleButton = Instance.new("TextButton", game.CoreGui)
-    ToggleButton.Size = UDim2.new(0, 100, 0, 30)
-    ToggleButton.Position = UDim2.new(0.5, -50, 0, 10)
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    ToggleButton.Text = "KhanhDuy"
-    ToggleButton.Font = Enum.Font.GothamBold
-    ToggleButton.TextSize = 14
-    ToggleButton.TextColor3 = Color3.fromRGB(255,255,255)
-
-    local UICorner = Instance.new("UICorner", ToggleButton)
-    UICorner.CornerRadius = UDim.new(0,8)
-
-    local Visible = true
-    ToggleButton.MouseButton1Click:Connect(function()
-        Visible = not Visible
-        self.MainFrame.Visible = Visible
-    end)
-end
-
-return setmetatable({}, KhanhDuyLib)
+return KhanhDuyLib
