@@ -3,6 +3,9 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanh
 
 local Window = Library:CreateWindow("Script Menu")
 
+-- Thêm dòng này để mở menu
+Library:ToggleUI(Enum.KeyCode.RightControl)
+
 -- Biến trạng thái
 getgenv().FullbrightEnabled = false
 getgenv().NoclipEnabled = false
@@ -32,7 +35,6 @@ MainTab:CreateToggle("Noclip", false, function(state)
     getgenv().NoclipEnabled = state
 end)
 
--- Noclip thực thi
 game:GetService("RunService").Stepped:Connect(function()
     if getgenv().NoclipEnabled then
         local player = game.Players.LocalPlayer
@@ -53,7 +55,6 @@ AimbotTab:CreateToggle("Enable Aimbot", false, function(state)
     getgenv().AimbotEnabled = state
 end)
 
--- Aimbot thực thi
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -62,35 +63,4 @@ local Mouse = LocalPlayer:GetMouse()
 RunService.RenderStepped:Connect(function()
     if getgenv().AimbotEnabled then
         local closestPlayer = nil
-        local shortestDistance = math.huge
-        for i, v in pairs(Players:GetPlayers()) do
-            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
-                local pos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(v.Character.Head.Position)
-                if onScreen then
-                    local dist = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                    if dist < shortestDistance then
-                        shortestDistance = dist
-                        closestPlayer = v
-                    end
-                end
-            end
-        end
-        if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
-            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, closestPlayer.Character.Head.Position)
-        end
-    end
-end)
-
--- Tab 3: ESP
-local ESPTab = Window:CreateTab("ESP")
--- (Bạn tự thêm ESP vào đây sau)
-
--- Tab 4: Teleport
-local TeleportTab = Window:CreateTab("Teleport")
-
-TeleportTab:CreateButton("Teleport to Spawn", function()
-    local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.CFrame = CFrame.new(Vector3.new(0, 10, 0)) -- Vị trí spawn mẫu
-    end
-end)
+        local shortestDistance = math
