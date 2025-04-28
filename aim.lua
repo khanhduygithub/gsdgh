@@ -1,75 +1,65 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/UiRedz.lua"))() -- (hoặc paste thẳng lib vào nếu tự lưu)
+-- Gọi thư viện
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/1KhanhDuyLib.lua"))()
 
-local Window = Library:CreateWindow("KhanhDuy Hub")
+-- Tạo cửa sổ
+local Window = Library:CreateWindow("KhanhDuy Hub", "Best Script Ever")
 
--- Main Tab
+-- Tab Main
 local MainTab = Window:CreateTab("Main")
-MainTab:CreateToggle("AutoBond", function(state)
-    print("AutoBond:", state)
+
+MainTab:CreateButton("Auto Bond", function()
+    print("Auto Bond Started!")
 end)
 
-MainTab:CreateToggle("FullBright", function(state)
-    if state then
-        game.Lighting.Brightness = 10
-        game.Lighting.Ambient = Color3.new(1, 1, 1)
-    else
-        game.Lighting.Brightness = 2
-        game.Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
-    end
+MainTab:CreateButton("Full Bright", function()
+    print("Full Bright Enabled!")
 end)
 
-MainTab:CreateToggle("NoClip", function(state)
-    local noclip = state
-    game:GetService('RunService').Stepped:Connect(function()
-        if noclip then
-            for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                if v:IsA('BasePart') then
-                    v.CanCollide = false
-                end
-            end
-        end
-    end)
+MainTab:CreateToggle("Noclip", false, function(state)
+    print("Noclip:", state)
 end)
 
--- Aimbot Tab
-local AimTab = Window:CreateTab("Aimbot")
-AimTab:CreateToggle("Aimbot", function(state)
-    print("Aimbot:", state)
+-- Tab Aimbot
+local AimbotTab = Window:CreateTab("Aimbot")
+
+AimbotTab:CreateToggle("Enable Aimbot", false, function(state)
+    print("Aimbot Enabled:", state)
 end)
 
-AimTab:CreateButton("Set FOV 10-500", function()
-    local fov = tonumber(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.TextBox.Text)
-    if fov and fov >= 10 and fov <= 500 then
-        print("FOV Set To:", fov)
-    else
-        warn("Nhập FOV hợp lệ từ 10 đến 500")
-    end
+AimbotTab:CreateSlider("FOV Size", {
+    min = 10,
+    max = 500,
+    default = 100
+}, function(value)
+    print("FOV Size:", value)
 end)
 
--- ESP Tab
+-- Tab ESP
 local ESPTab = Window:CreateTab("ESP")
-ESPTab:CreateToggle("Enable ESP", function(state)
+
+ESPTab:CreateToggle("Enable ESP", false, function(state)
     print("ESP Enabled:", state)
 end)
 
--- Teleport Tab
+-- Tab Teleport
 local TeleportTab = Window:CreateTab("Teleport")
-TeleportTab:CreateButton("Train", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(0,10,0)) -- đổi tọa độ theo map của bạn
+
+TeleportTab:CreateButton("Teleport to Train", function()
+    print("Teleported to Train!")
 end)
 
-TeleportTab:CreateButton("Tesla", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(100,10,0))
+TeleportTab:CreateButton("Teleport to Tesla", function()
+    print("Teleported to Tesla!")
 end)
 
-TeleportTab:CreateButton("Fort", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(200,10,0))
+TeleportTab:CreateButton("Teleport to Fort", function()
+    print("Teleported to Fort!")
 end)
 
-TeleportTab:CreateButton("Sterling", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(300,10,0))
+TeleportTab:CreateButton("Teleport to Sterling", function()
+    print("Teleported to Sterling!")
 end)
 
-TeleportTab:CreateButton("End", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(400,10,0))
+TeleportTab:CreateButton("Teleport to End", function()
+    print("Teleported to End!")
 end)
