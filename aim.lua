@@ -1,76 +1,78 @@
---// Script chính dùng KhanhDuyLib
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/UiRedz.lua"))() -- Bạn thay LINK bằng link upload thư viện
+-- DeadRailsScript.lua
+local KhanhDuyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/UiRedz.lua"))() -- Thay link đúng KhanhDuyLib
 
-local Window = Library:CreateWindow("KhanhDuy Menu")
+local Window = KhanhDuyLib
 
--- Tab Main
+-- Tạo Tabs
 local MainTab = Window:CreateTab("Main")
-Library:CreateToggle(MainTab, "Auto Bond", function(state)
-    print("Auto Bond: ", state)
-end)
-Library:CreateToggle(MainTab, "FullBright", function(state)
+local AimbotTab = Window:CreateTab("Aimbot")
+local ESPTab = Window:CreateTab("ESP")
+local TeleportTab = Window:CreateTab("Teleport")
+
+-- Main Tab
+Window:CreateToggle(MainTab, "Auto Bond", function(state)
     if state then
-        game.Lighting.Brightness = 2
-        game.Lighting.FogEnd = 100000
+        print("Auto Bond: ON")
+    else
+        print("Auto Bond: OFF")
+    end
+end)
+
+Window:CreateToggle(MainTab, "Fullbright", function(state)
+    if state then
+        game.Lighting.Brightness = 10
     else
         game.Lighting.Brightness = 1
-        game.Lighting.FogEnd = 1000
     end
 end)
-Library:CreateToggle(MainTab, "NoClip", function(state)
-    -- Basic NoClip (simple)
-    local character = game.Players.LocalPlayer.Character
+
+Window:CreateToggle(MainTab, "Noclip", function(state)
     if state then
-        if character then
-            for _,v in pairs(character:GetDescendants()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = false
-                end
-            end
-        end
+        print("Noclip: ON")
     else
-        if character then
-            for _,v in pairs(character:GetDescendants()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = true
-                end
-            end
-        end
+        print("Noclip: OFF")
     end
 end)
 
--- Tab Aim
-local AimTab = Window:CreateTab("Aim")
-Library:CreateToggle(AimTab, "Aimbot", function(state)
-    print("Aimbot: ", state)
-end)
-Library:CreateSlider(AimTab, "FOV", 10, 500, 50, function(value)
-    print("FOV set to: ", value)
-end)
-
--- Tab ESP
-local ESPTab = Window:CreateTab("ESP")
-Library:CreateToggle(ESPTab, "Enable ESP", function(state)
-    print("ESP: ", state)
+-- Aimbot Tab
+Window:CreateToggle(AimbotTab, "Enable Aimbot", function(state)
+    if state then
+        print("Aimbot Enabled")
+    else
+        print("Aimbot Disabled")
+    end
 end)
 
--- Tab Teleport
-local TeleportTab = Window:CreateTab("Teleport")
-Library:CreateButton(TeleportTab, "Teleport to Train", function()
-    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(100,0,100))
-end)
-Library:CreateButton(TeleportTab, "Teleport to Tesla", function()
-    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(200,0,200))
-end)
-Library:CreateButton(TeleportTab, "Teleport to Fort", function()
-    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(300,0,300))
-end)
-Library:CreateButton(TeleportTab, "Teleport to Sterling", function()
-    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(400,0,400))
-end)
-Library:CreateButton(TeleportTab, "Teleport to End", function()
-    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(500,0,500))
+Window:CreateSlider(AimbotTab, "FOV Size", 10, 500, function(value)
+    print("FOV set to", value)
 end)
 
--- Toggle Menu Button
-Library:CreateToggleMenu()
+-- ESP Tab
+Window:CreateToggle(ESPTab, "ESP Enabled", function(state)
+    if state then
+        print("ESP ON")
+    else
+        print("ESP OFF")
+    end
+end)
+
+-- Teleport Tab
+Window:CreateButton(TeleportTab, "Train", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(100, 10, 100))
+end)
+
+Window:CreateButton(TeleportTab, "Tesla", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(200, 10, 200))
+end)
+
+Window:CreateButton(TeleportTab, "Fort", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(300, 10, 300))
+end)
+
+Window:CreateButton(TeleportTab, "Sterling", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(400, 10, 400))
+end)
+
+Window:CreateButton(TeleportTab, "End", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(500, 10, 500))
+end)
