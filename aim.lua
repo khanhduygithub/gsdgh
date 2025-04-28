@@ -1,5 +1,5 @@
--- Load thư viện từ Raw Github
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/1KhanhDuyLib.lua"))()
+-- Load thư viện đúng link
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/main/1KhanhDuyLib.lua"))()
 
 local Window = Library:CreateWindow("Script Menu")
 
@@ -11,7 +11,7 @@ getgenv().FullbrightEnabled = false
 getgenv().NoclipEnabled = false
 getgenv().AimbotEnabled = false
 
--- Main Tab
+-- Tab Main
 local MainTab = Window:CreateTab("Main")
 
 MainTab:CreateToggle("Fullbright", false, function(state)
@@ -47,7 +47,7 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
--- Aimbot Tab
+-- Tab Aimbot
 local AimbotTab = Window:CreateTab("Aimbot")
 
 AimbotTab:CreateToggle("Enable Aimbot", false, function(state)
@@ -57,9 +57,8 @@ end)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-local RunService = game:GetService("RunService")
 
-RunService.RenderStepped:Connect(function()
+game:GetService("RunService").RenderStepped:Connect(function()
     if getgenv().AimbotEnabled then
         local closest, distance = nil, math.huge
         for _, player in pairs(Players:GetPlayers()) do
@@ -80,11 +79,10 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- ESP Tab
+-- Tab ESP (Bạn tự thêm sau)
 local ESPTab = Window:CreateTab("ESP")
--- (Bạn tự thêm ESP sau)
 
--- Teleport Tab
+-- Tab Teleport
 local TeleportTab = Window:CreateTab("Teleport")
 
 TeleportTab:CreateButton("Teleport to Spawn", function()
