@@ -1,5 +1,5 @@
--- Load Orion Library
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+-- Load Orion Library từ nguồn chính thức
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/OrionLibrary/Orion/main/source.lua'))()
 
 -- Tạo cửa sổ chính
 local Window = OrionLib:MakeWindow({
@@ -13,55 +13,24 @@ local Window = OrionLib:MakeWindow({
     Icon = "rbxassetid://7734053491"
 })
 
--- Tạo 4 tab
-local MainTab = Window:MakeTab({
-    Name = "Main",
-    Icon = "rbxassetid://7733765390",
-    PremiumOnly = false
-})
+-- Tạo 4 tab theo yêu cầu
+local MainTab = Window:MakeTab({Name = "Main", Icon = "rbxassetid://7733765390"})
+local AimbotTab = Window:MakeTab({Name = "Aimbot", Icon = "rbxassetid://7733921476"})
+local EspTab = Window:MakeTab({Name = "ESP", Icon = "rbxassetid://7733941276"})
+local TeleportTab = Window:MakeTab({Name = "Teleport", Icon = "rbxassetid://7734058123"})
 
-local AimbotTab = Window:MakeTab({
-    Name = "Aimbot",
-    Icon = "rbxassetid://7733921476",
-    PremiumOnly = false
-})
-
-local EspTab = Window:MakeTab({
-    Name = "ESP",
-    Icon = "rbxassetid://7733941276",
-    PremiumOnly = false
-})
-
-local TeleportTab = Window:MakeTab({
-    Name = "Teleport",
-    Icon = "rbxassetid://7734058123",
-    PremiumOnly = false
-})
-
--- ========== MAIN TAB ==========
-MainTab:AddLabel("Welcome to Premium Hack")
-MainTab:AddLabel("Version 2.0")
-
-MainTab:AddButton({
-    Name = "Load Script",
-    Callback = function()
-        OrionLib:MakeNotification({
-            Name = "System",
-            Content = "Script loaded successfully!",
-            Image = "rbxassetid://7733697995",
-            Time = 5
-        })
-    end    
-})
+-- ===== MAIN TAB =====
+MainTab:AddLabel("Premium Hack Menu v2.0")
+MainTab:AddParagraph("Status", "Ready to use")
 
 MainTab:AddToggle({
-    Name = "Enable Auto Farm",
+    Name = "Kích hoạt Auto Farm",
     Default = false,
     Callback = function(Value)
-        getgenv().AutoFarm = Value
+        _G.AutoFarm = Value
         OrionLib:MakeNotification({
-            Name = "Auto Farm",
-            Content = Value and "Enabled" or "Disabled",
+            Name = "Thông báo",
+            Content = Value and "Đã bật Auto Farm" or "Đã tắt Auto Farm",
             Image = "rbxassetid://7733697995",
             Time = 3
         })
@@ -69,81 +38,80 @@ MainTab:AddToggle({
 })
 
 MainTab:AddSlider({
-    Name = "Farm Speed",
+    Name = "Tốc độ Farm",
     Min = 1,
     Max = 10,
     Default = 5,
     Color = Color3.fromRGB(255, 0, 0),
     Increment = 1,
     Callback = function(Value)
-        getgenv().FarmSpeed = Value
+        _G.FarmSpeed = Value
     end    
 })
 
--- ========== AIMBOT TAB ==========
+-- ===== AIMBOT TAB =====
 AimbotTab:AddToggle({
-    Name = "Enable Aimbot",
+    Name = "Bật Aimbot",
     Default = false,
     Callback = function(Value)
-        getgenv().AimbotEnabled = Value
+        _G.AimbotEnabled = Value
     end    
 })
 
 AimbotTab:AddDropdown({
-    Name = "Aimbot Target",
+    Name = "Bộ phận nhắm",
     Default = "Head",
-    Options = {"Head", "Torso", "Random"},
+    Options = {"Head", "UpperTorso", "HumanoidRootPart"},
     Callback = function(Value)
-        getgenv().AimbotPart = Value
+        _G.AimbotPart = Value
     end    
 })
 
 AimbotTab:AddSlider({
-    Name = "Aimbot FOV",
-    Min = 10,
-    Max = 500,
-    Default = 100,
-    Color = Color3.fromRGB(255, 0, 0),
-    Increment = 10,
+    Name = "Độ nhạy",
+    Min = 1,
+    Max = 100,
+    Default = 50,
+    Color = Color3.fromRGB(0, 255, 0),
     Callback = function(Value)
-        getgenv().AimbotFOV = Value
+        _G.AimbotSensitivity = Value
     end    
 })
 
--- ========== ESP TAB ==========
+-- ===== ESP TAB =====
 EspTab:AddToggle({
-    Name = "Enable ESP",
+    Name = "Bật ESP",
     Default = false,
     Callback = function(Value)
-        getgenv().ESPEnabled = Value
+        _G.ESPEnabled = Value
     end    
 })
 
 EspTab:AddColorpicker({
-    Name = "ESP Color",
+    Name = "Màu ESP",
     Default = Color3.fromRGB(255, 0, 0),
     Callback = function(Value)
-        getgenv().ESPColor = Value
+        _G.ESPColor = Value
     end    
 })
 
 EspTab:AddDropdown({
-    Name = "ESP Type",
+    Name = "Kiểu ESP",
     Default = "Box",
-    Options = {"Box", "Tracer", "Name", "All"},
+    Options = {"Box", "Tracer", "Name", "HealthBar"},
     Callback = function(Value)
-        getgenv().ESPType = Value
+        _G.ESPType = Value
     end    
 })
 
--- ========== TELEPORT TAB ==========
+-- ===== TELEPORT TAB =====
 TeleportTab:AddButton({
-    Name = "Teleport to Spawn",
+    Name = "Dịch chuyển tới Spawn",
     Callback = function()
-        -- Your teleport code here
+        -- Code teleport ở đây
         OrionLib:MakeNotification({
             Name = "Teleport",
-            Content = "Teleported to spawn!",
+            Content = "Đã dịch chuyển tới Spawn",
             Image = "rbxassetid://7733697995",
             Time = 3
         })
@@ -151,14 +119,14 @@ TeleportTab:AddButton({
 })
 
 TeleportTab:AddTextbox({
-    Name = "Teleport to Player",
-    Default = "Username",
+    Name = "Dịch chuyển tới người chơi",
+    Default = "Nhập tên",
     TextDisappear = true,
     Callback = function(Value)
-        -- Your teleport to player code here
+        -- Code teleport to player
         OrionLib:MakeNotification({
             Name = "Teleport",
-            Content = "Attempting to teleport to "..Value,
+            Content = "Đang dịch chuyển tới "..Value,
             Image = "rbxassetid://7733697995",
             Time = 3
         })
@@ -166,19 +134,19 @@ TeleportTab:AddTextbox({
 })
 
 TeleportTab:AddDropdown({
-    Name = "Quick Teleport Locations",
-    Default = "Select Location",
-    Options = {"Bank", "Base", "Secret Area", "Boss Room"},
+    Name = "Địa điểm nhanh",
+    Default = "Chọn địa điểm",
+    Options = {"Vị trí 1", "Vị trí 2", "Khu vực bí mật"},
     Callback = function(Value)
-        -- Your location teleport code here
+        -- Code teleport to location
         OrionLib:MakeNotification({
             Name = "Teleport",
-            Content = "Teleported to "..Value,
+            Content = "Đã tới "..Value,
             Image = "rbxassetid://7733697995",
             Time = 3
         })
     end    
 })
 
--- Init UI
+-- Khởi tạo UI
 OrionLib:Init()
