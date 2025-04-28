@@ -1,121 +1,127 @@
---// KhanhDuy Hub - Mini Menu Fixed Version
-
-local UIS = game:GetService("UserInputService")
+-- KhanhDuyHub Library
+local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local GuiService = game:GetService("GuiService")
 
--- ScreenGui
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KhanhDuyHub"
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
+local KhanhDuyHub = {}
+local Windows = {}
 
--- Main Menu
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 400, 0, 250)
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = ScreenGui
+local function MakeDraggable(Handle, Object)
+	local Dragging, DragInput, MousePos, FramePos
 
-local MainCorner = Instance.new("UICorner", MainFrame)
-MainCorner.CornerRadius = UDim.new(0, 8)
+	Handle.InputBegan:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+			Dragging = true
+			MousePos = Input.Position
+			FramePos = Object.Position
 
--- Title
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundTransparency = 1
-Title.Text = "KhanhDuy Hub - DeadRails"
-Title.TextColor3 = Color3.fromRGB(0, 170, 255)
-Title.TextScaled = true
-Title.Font = Enum.Font.GothamBold
-Title.Parent = MainFrame
+			Input.Changed:Connect(function()
+				if Input.UserInputState == Enum.UserInputState.End then
+					Dragging = false
+				end
+			end)
+		end
+	end)
 
--- Tabs Frame
-local TabsFrame = Instance.new("Frame")
-TabsFrame.Size = UDim2.new(0, 100, 0, 210)
-TabsFrame.Position = UDim2.new(0, 10, 0, 35)
-TabsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-TabsFrame.BorderSizePixel = 0
-TabsFrame.Parent = MainFrame
+	Handle.InputChanged:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseMovement then
+			DragInput = Input
+		end
+	end)
 
-local TabsCorner = Instance.new("UICorner", TabsFrame)
-TabsCorner.CornerRadius = UDim.new(0, 6)
-
--- Content Frame
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Size = UDim2.new(0, 280, 0, 210)
-ContentFrame.Position = UDim2.new(0, 110, 0, 35)
-ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-ContentFrame.BorderSizePixel = 0
-ContentFrame.Parent = MainFrame
-
-local ContentCorner = Instance.new("UICorner", ContentFrame)
-ContentCorner.CornerRadius = UDim.new(0, 6)
-
--- Tabs
-local Tabs = {"Main", "Aim", "ESP", "Teleport"}
-for i, name in ipairs(Tabs) do
-    local TabButton = Instance.new("TextButton")
-    TabButton.Size = UDim2.new(1, -20, 0, 40)
-    TabButton.Position = UDim2.new(0, 10, 0, 10 + (i-1)*50)
-    TabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TabButton.Font = Enum.Font.GothamBold
-    TabButton.Text = name
-    TabButton.TextScaled = true
-    TabButton.Parent = TabsFrame
-
-    local TabUICorner = Instance.new("UICorner", TabButton)
-    TabUICorner.CornerRadius = UDim.new(0, 6)
+	UserInputService.InputChanged:Connect(function(Input)
+		if Input == DragInput and Dragging then
+			local Delta = Input.Position - MousePos
+			Object.Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
+		end
+	end)
 end
 
--- Toggle Button
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 100, 0, 30)
-ToggleButton.Position = UDim2.new(0, 10, 0, 10)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-ToggleButton.Text = "KhanhDuy"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.TextScaled = true
-ToggleButton.Parent = ScreenGui
+function KhanhDuyHub:CreateWindow(Settings)
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "KhanhDuyHubGui"
+	ScreenGui.Parent = CoreGui
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
-local ToggleCorner = Instance.new("UICorner", ToggleButton)
-ToggleCorner.CornerRadius = UDim.new(0, 8)
+	local MainFrame = Instance.new("Frame")
+	MainFrame.Size = UDim2.new(0, 450, 0, 300)
+	MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
+	MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	MainFrame.BorderSizePixel = 0
+	MainFrame.Parent = ScreenGui
 
--- Đóng/mở MainFrame
-local MenuVisible = true
-ToggleButton.MouseButton1Click:Connect(function()
-    MenuVisible = not MenuVisible
-    MainFrame.Visible = MenuVisible
-end)
+	MakeDraggable(MainFrame, MainFrame)
 
--- Kéo thả MainFrame
-local dragging, dragInput, dragStart, startPos
+	local UICorner = Instance.new("UICorner", MainFrame)
+	UICorner.CornerRadius = UDim.new(0, 8)
 
-MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
+	local Title = Instance.new("TextLabel")
+	Title.Text = Settings.Name or "KhanhDuy Hub"
+	Title.Font = Enum.Font.GothamBold
+	Title.TextSize = 18
+	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Title.BackgroundTransparency = 1
+	Title.Size = UDim2.new(1, 0, 0, 40)
+	Title.Parent = MainFrame
 
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
+	local ToggleButton = Instance.new("TextButton")
+	ToggleButton.Text = "KhanhDuy"
+	ToggleButton.Font = Enum.Font.Gotham
+	ToggleButton.TextSize = 16
+	ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	ToggleButton.Size = UDim2.new(0, 100, 0, 30)
+	ToggleButton.Position = UDim2.new(1, -110, 0, 10)
+	ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	ToggleButton.Parent = MainFrame
 
-MainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
+	local ContentFrame = Instance.new("Frame")
+	ContentFrame.Size = UDim2.new(1, 0, 1, -40)
+	ContentFrame.Position = UDim2.new(0, 0, 0, 40)
+	ContentFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	ContentFrame.BorderSizePixel = 0
+	ContentFrame.Parent = MainFrame
 
-UIS.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
+	UICorner:Clone().Parent = ContentFrame
+
+	ToggleButton.MouseButton1Click:Connect(function()
+		MainFrame.Visible = not MainFrame.Visible
+	end)
+
+	return {
+		CreateTab = function(_, TabName, TabIcon)
+			local Tab = Instance.new("Frame")
+			Tab.Size = UDim2.new(1, 0, 1, 0)
+			Tab.BackgroundTransparency = 1
+			Tab.Parent = ContentFrame
+
+			local TabLabel = Instance.new("TextLabel")
+			TabLabel.Text = TabName
+			TabLabel.Font = Enum.Font.Gotham
+			TabLabel.TextSize = 20
+			TabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			TabLabel.BackgroundTransparency = 1
+			TabLabel.Size = UDim2.new(1, 0, 0, 40)
+			TabLabel.Parent = Tab
+
+			return {
+				CreateButton = function(_, Settings)
+					local Button = Instance.new("TextButton")
+					Button.Text = Settings.Name or "Button"
+					Button.Size = UDim2.new(1, -20, 0, 30)
+					Button.Position = UDim2.new(0, 10, 0, 50)
+					Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+					Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+					Button.Font = Enum.Font.Gotham
+					Button.TextSize = 16
+					Button.Parent = Tab
+					Button.MouseButton1Click:Connect(function()
+						Settings.Callback()
+					end)
+				end,
+			}
+		end,
+	}
+end
+
+return KhanhDuyHub
