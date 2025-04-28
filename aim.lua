@@ -1,29 +1,28 @@
--- Load thư viện
+-- Load thư viện từ Raw Github
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/1KhanhDuyLib.lua"))()
 
 local Window = Library:CreateWindow("Script Menu")
 
--- Thêm dòng này để mở menu
+-- Phím mở menu
 Library:ToggleUI(Enum.KeyCode.RightControl)
 
--- Biến trạng thái
+-- Các biến
 getgenv().FullbrightEnabled = false
 getgenv().NoclipEnabled = false
 getgenv().AimbotEnabled = false
 
--- Tab 1: Main
+-- Main Tab
 local MainTab = Window:CreateTab("Main")
 
 MainTab:CreateToggle("Fullbright", false, function(state)
     getgenv().FullbrightEnabled = state
+    local lighting = game:GetService("Lighting")
     if state then
-        local lighting = game:GetService("Lighting")
         lighting.Brightness = 2
         lighting.ClockTime = 12
         lighting.FogEnd = 100000
         lighting.GlobalShadows = false
     else
-        local lighting = game:GetService("Lighting")
         lighting.Brightness = 1
         lighting.ClockTime = 14
         lighting.FogEnd = 1000
@@ -37,60 +36,59 @@ end)
 
 game:GetService("RunService").Stepped:Connect(function()
     if getgenv().NoclipEnabled then
-        local player = game.Players.LocalPlayer
-        if player.Character then
-            for _,v in pairs(player.Character:GetDescendants()) do
-                if v:IsA("BasePart") and v.CanCollide == true then
-                    v.CanCollide = false
+        local character = game.Players.LocalPlayer.Character
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
                 end
             end
         end
     end
 end)
 
--- Tab 2: Aimbot
+-- Aimbot Tab
 local AimbotTab = Window:CreateTab("Aimbot")
 
 AimbotTab:CreateToggle("Enable Aimbot", false, function(state)
     getgenv().AimbotEnabled = state
 end)
 
-local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
+local RunService = game:GetService("RunService")
 
 RunService.RenderStepped:Connect(function()
     if getgenv().AimbotEnabled then
-        local closestPlayer = nil
-        local shortestDistance = math.huge
-        for i, v in pairs(Players:GetPlayers()) do
-            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
-                local pos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(v.Character.Head.Position)
-                if onScreen then
-                    local dist = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                    if dist < shortestDistance then
-                        shortestDistance = dist
-                        closestPlayer = v
+        local closest, distance = nil, math.huge
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                local pos, visible = workspace.CurrentCamera:WorldToScreenPoint(player.Character.Head.Position)
+                if visible then
+                    local diff = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                    if diff < distance then
+                        distance = diff
+                        closest = player
                     end
                 end
             end
         end
-        if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
-            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, closestPlayer.Character.Head.Position)
+        if closest and closest.Character and closest.Character:FindFirstChild("Head") then
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, closest.Character.Head.Position)
         end
     end
 end)
 
--- Tab 3: ESP
+-- ESP Tab
 local ESPTab = Window:CreateTab("ESP")
--- (Bạn tự thêm ESP vào đây sau)
+-- (Bạn tự thêm ESP sau)
 
--- Tab 4: Teleport
+-- Teleport Tab
 local TeleportTab = Window:CreateTab("Teleport")
 
 TeleportTab:CreateButton("Teleport to Spawn", function()
-    local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if hrp then
         hrp.CFrame = CFrame.new(Vector3.new(0, 10, 0))
     end
