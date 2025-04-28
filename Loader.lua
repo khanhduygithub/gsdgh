@@ -1,4 +1,4 @@
-local NovaX = loadstring(game:HttpGet("URL_RAW_CỦA_NOVA_X"))()
+local NovaX = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/xwarehub.lua"))()
 
 local window = NovaX:CreateWindow({
     Name = "Premium Menu",
