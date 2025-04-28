@@ -1,81 +1,144 @@
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local UICorner = Instance.new("UICorner")
-local UIStroke = Instance.new("UIStroke")
-local DestroyButton = Instance.new("TextButton")
-local Title = Instance.new("TextLabel")
-local ScriptButton1 = Instance.new("TextButton")
-local ScriptButton2 = Instance.new("TextButton")
+-- Tải thư viện Rayfield chính chủ
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Parent to CoreGui
-ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.Name = "KiciaHub"
+-- Tạo Window chính
+local Window = Rayfield:CreateWindow({
+   Name = "KiciaHub - DeadRails",
+   LoadingTitle = "KiciaHub Loading...",
+   LoadingSubtitle = "by bạn và ChatGPT",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil, -- lưu setting (tùy chọn)
+      FileName = "KiciaHubConfig"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "", -- nếu muốn invite discord
+      RememberJoins = true
+   },
+   KeySystem = false, -- không cần key
+})
 
--- Frame setup
-Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 300, 0, 250)
-Frame.Position = UDim2.new(0.5, -150, 0.5, -125)
-Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+-- Tab Main
+local MainTab = Window:CreateTab("Main", 4483362458) -- icon random
+local AutoBondToggle = MainTab:CreateToggle({
+   Name = "AutoBond",
+   CurrentValue = false,
+   Flag = "AutoBond",
+   Callback = function(Value)
+      if Value then
+         print("AutoBond Enabled")
+      else
+         print("AutoBond Disabled")
+      end
+   end,
+})
 
-UICorner.Parent = Frame
-UIStroke.Parent = Frame
-UIStroke.Color = Color3.fromRGB(255, 255, 255)
-UIStroke.Thickness = 2
+local FullbrightToggle = MainTab:CreateToggle({
+   Name = "Fullbright",
+   CurrentValue = false,
+   Flag = "Fullbright",
+   Callback = function(Value)
+      if Value then
+         print("Fullbright Enabled")
+      else
+         print("Fullbright Disabled")
+      end
+   end,
+})
 
--- Title
-Title.Parent = Frame
-Title.Size = UDim2.new(1, 0, 0, 50)
-Title.BackgroundTransparency = 1
-Title.Text = "KiciaHub"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 24
+local NoclipToggle = MainTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Flag = "Noclip",
+   Callback = function(Value)
+      if Value then
+         print("Noclip Enabled")
+      else
+         print("Noclip Disabled")
+      end
+   end,
+})
 
--- Destroy Button
-DestroyButton.Parent = Frame
-DestroyButton.Size = UDim2.new(0, 100, 0, 30)
-DestroyButton.Position = UDim2.new(0.5, -50, 1, -40)
-DestroyButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-DestroyButton.Text = "Destroy GUI"
-DestroyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-DestroyButton.Font = Enum.Font.SourceSans
-DestroyButton.TextSize = 18
-DestroyButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
+-- Tab Aim
+local AimTab = Window:CreateTab("Aim", 4483362458)
+local AimbotToggle = AimTab:CreateToggle({
+   Name = "Aimbot",
+   CurrentValue = false,
+   Flag = "Aimbot",
+   Callback = function(Value)
+      if Value then
+         print("Aimbot Enabled")
+      else
+         print("Aimbot Disabled")
+      end
+   end,
+})
 
--- Script Button 1
-ScriptButton1.Parent = Frame
-ScriptButton1.Size = UDim2.new(0, 200, 0, 40)
-ScriptButton1.Position = UDim2.new(0.5, -100, 0, 70)
-ScriptButton1.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-ScriptButton1.Text = "Game Script 1"
-ScriptButton1.TextColor3 = Color3.fromRGB(255, 255, 255)
-ScriptButton1.Font = Enum.Font.SourceSans
-ScriptButton1.TextSize = 20
-ScriptButton1.MouseButton1Click:Connect(function()
-    loadstring(game:HttpGet("https://your-link-here.com/script1.lua"))()
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "KiciaHub",
-        Text = "Script 1 Loaded!",
-        Duration = 3
-    })
-end)
+local FOVSlider = AimTab:CreateSlider({
+   Name = "Aimbot FOV",
+   Range = {10, 500},
+   Increment = 5,
+   Suffix = "FOV",
+   CurrentValue = 50,
+   Flag = "FOV",
+   Callback = function(Value)
+      print("FOV set to", Value)
+   end,
+})
 
--- Script Button 2
-ScriptButton2.Parent = Frame
-ScriptButton2.Size = UDim2.new(0, 200, 0, 40)
-ScriptButton2.Position = UDim2.new(0.5, -100, 0, 120)
-ScriptButton2.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-ScriptButton2.Text = "Game Script 2"
-ScriptButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
-ScriptButton2.Font = Enum.Font.SourceSans
-ScriptButton2.TextSize = 20
-ScriptButton2.MouseButton1Click:Connect(function()
-    loadstring(game:HttpGet("https://your-link-here.com/script2.lua"))()
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "KiciaHub",
-        Text = "Script 2 Loaded!",
-        Duration = 3
-    })
-end)
+-- Tab ESP
+local ESPTab = Window:CreateTab("ESP", 4483362458)
+local ESPToggle = ESPTab:CreateToggle({
+   Name = "ESP Enabled",
+   CurrentValue = false,
+   Flag = "ESP",
+   Callback = function(Value)
+      if Value then
+         print("ESP Enabled")
+      else
+         print("ESP Disabled")
+      end
+   end,
+})
+
+-- Tab Teleport
+local TeleportTab = Window:CreateTab("Teleport", 4483362458)
+
+local TrainButton = TeleportTab:CreateButton({
+   Name = "Teleport to Train",
+   Callback = function()
+      print("Teleporting to Train")
+   end,
+})
+
+local TeslaButton = TeleportTab:CreateButton({
+   Name = "Teleport to Tesla",
+   Callback = function()
+      print("Teleporting to Tesla")
+   end,
+})
+
+local FortButton = TeleportTab:CreateButton({
+   Name = "Teleport to Fort",
+   Callback = function()
+      print("Teleporting to Fort")
+   end,
+})
+
+local SterlingButton = TeleportTab:CreateButton({
+   Name = "Teleport to Sterling",
+   Callback = function()
+      print("Teleporting to Sterling")
+   end,
+})
+
+local EndButton = TeleportTab:CreateButton({
+   Name = "Teleport to End",
+   Callback = function()
+      print("Teleporting to End")
+   end,
+})
+
+-- Nút đóng/mở menu
+Rayfield:LoadConfiguration()
