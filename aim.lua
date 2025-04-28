@@ -1,4 +1,4 @@
-local KhanhDuyField = loadstring(game:HttpGet("LINK-ĐƯỜNG-DẪN-KHANHDUYFIELD.lua"))()
+local KhanhDuyField = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/UiRedz.lua"))()
 
 local Window = KhanhDuyField:CreateWindow("KhanhDuy")
 
