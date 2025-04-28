@@ -1,144 +1,131 @@
--- Tải thư viện Rayfield chính chủ
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+--// KhanhDuy Custom Menu
 
--- Tạo Window chính
-local Window = Rayfield:CreateWindow({
-   Name = "KiciaHub - DeadRails",
-   LoadingTitle = "KiciaHub Loading...",
-   LoadingSubtitle = "by bạn và ChatGPT",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = nil, -- lưu setting (tùy chọn)
-      FileName = "KiciaHubConfig"
-   },
-   Discord = {
-      Enabled = false,
-      Invite = "", -- nếu muốn invite discord
-      RememberJoins = true
-   },
-   KeySystem = false, -- không cần key
-})
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
--- Tab Main
-local MainTab = Window:CreateTab("Main", 4483362458) -- icon random
-local AutoBondToggle = MainTab:CreateToggle({
-   Name = "AutoBond",
-   CurrentValue = false,
-   Flag = "AutoBond",
-   Callback = function(Value)
-      if Value then
-         print("AutoBond Enabled")
-      else
-         print("AutoBond Disabled")
-      end
-   end,
-})
+-- Tạo ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KhanhDuyHub"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-local FullbrightToggle = MainTab:CreateToggle({
-   Name = "Fullbright",
-   CurrentValue = false,
-   Flag = "Fullbright",
-   Callback = function(Value)
-      if Value then
-         print("Fullbright Enabled")
-      else
-         print("Fullbright Disabled")
-      end
-   end,
-})
+-- Tạo Frame chính
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 500, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = true
+MainFrame.Parent = ScreenGui
 
-local NoclipToggle = MainTab:CreateToggle({
-   Name = "Noclip",
-   CurrentValue = false,
-   Flag = "Noclip",
-   Callback = function(Value)
-      if Value then
-         print("Noclip Enabled")
-      else
-         print("Noclip Disabled")
-      end
-   end,
-})
+-- UICorner bo góc
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
 
--- Tab Aim
-local AimTab = Window:CreateTab("Aim", 4483362458)
-local AimbotToggle = AimTab:CreateToggle({
-   Name = "Aimbot",
-   CurrentValue = false,
-   Flag = "Aimbot",
-   Callback = function(Value)
-      if Value then
-         print("Aimbot Enabled")
-      else
-         print("Aimbot Disabled")
-      end
-   end,
-})
+-- Tiêu đề
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundTransparency = 1
+Title.Text = "KhanhDuy Hub - DeadRails"
+Title.TextColor3 = Color3.fromRGB(0, 170, 255)
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+Title.Parent = MainFrame
 
-local FOVSlider = AimTab:CreateSlider({
-   Name = "Aimbot FOV",
-   Range = {10, 500},
-   Increment = 5,
-   Suffix = "FOV",
-   CurrentValue = 50,
-   Flag = "FOV",
-   Callback = function(Value)
-      print("FOV set to", Value)
-   end,
-})
+-- Nút mở/đóng menu (ghi tên bạn)
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 100, 0, 40)
+ToggleButton.Position = UDim2.new(1, -110, 1, 10)
+ToggleButton.Text = "KhanhDuy"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextScaled = true
+ToggleButton.Parent = MainFrame
 
--- Tab ESP
-local ESPTab = Window:CreateTab("ESP", 4483362458)
-local ESPToggle = ESPTab:CreateToggle({
-   Name = "ESP Enabled",
-   CurrentValue = false,
-   Flag = "ESP",
-   Callback = function(Value)
-      if Value then
-         print("ESP Enabled")
-      else
-         print("ESP Disabled")
-      end
-   end,
-})
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.Parent = ToggleButton
 
--- Tab Teleport
-local TeleportTab = Window:CreateTab("Teleport", 4483362458)
+-- Tabs Container
+local TabsFrame = Instance.new("Frame")
+TabsFrame.Size = UDim2.new(0, 120, 0, 260)
+TabsFrame.Position = UDim2.new(0, 10, 0, 40)
+TabsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TabsFrame.BorderSizePixel = 0
+TabsFrame.Parent = MainFrame
 
-local TrainButton = TeleportTab:CreateButton({
-   Name = "Teleport to Train",
-   Callback = function()
-      print("Teleporting to Train")
-   end,
-})
+local TabsCorner = Instance.new("UICorner")
+TabsCorner.CornerRadius = UDim.new(0, 6)
+TabsCorner.Parent = TabsFrame
 
-local TeslaButton = TeleportTab:CreateButton({
-   Name = "Teleport to Tesla",
-   Callback = function()
-      print("Teleporting to Tesla")
-   end,
-})
+-- Nội dung các tab
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(0, 350, 0, 260)
+ContentFrame.Position = UDim2.new(0, 130, 0, 40)
+ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+ContentFrame.BorderSizePixel = 0
+ContentFrame.Parent = MainFrame
 
-local FortButton = TeleportTab:CreateButton({
-   Name = "Teleport to Fort",
-   Callback = function()
-      print("Teleporting to Fort")
-   end,
-})
+local ContentCorner = Instance.new("UICorner")
+ContentCorner.CornerRadius = UDim.new(0, 6)
+ContentCorner.Parent = ContentFrame
 
-local SterlingButton = TeleportTab:CreateButton({
-   Name = "Teleport to Sterling",
-   Callback = function()
-      print("Teleporting to Sterling")
-   end,
-})
+-- Các tab: Main, Aim, ESP, Teleport
+local Tabs = {"Main", "Aim", "ESP", "Teleport"}
 
-local EndButton = TeleportTab:CreateButton({
-   Name = "Teleport to End",
-   Callback = function()
-      print("Teleporting to End")
-   end,
-})
+for _, name in ipairs(Tabs) do
+    local TabButton = Instance.new("TextButton")
+    TabButton.Size = UDim2.new(1, -20, 0, 40)
+    TabButton.Position = UDim2.new(0, 10, 0, 10 + (_-1)*50)
+    TabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabButton.Font = Enum.Font.GothamBold
+    TabButton.Text = name
+    TabButton.TextScaled = true
+    TabButton.Parent = TabsFrame
+
+    local TabUICorner = Instance.new("UICorner")
+    TabUICorner.CornerRadius = UDim.new(0, 6)
+    TabUICorner.Parent = TabButton
+end
 
 -- Nút đóng/mở menu
-Rayfield:LoadConfiguration()
+local MenuVisible = true
+ToggleButton.MouseButton1Click:Connect(function()
+    MenuVisible = not MenuVisible
+    MainFrame.Visible = MenuVisible
+end)
+
+-- Kéo thả menu
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
