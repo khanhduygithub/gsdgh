@@ -608,15 +608,6 @@ EspSection:AddToggle("ESPEnabled", {
     end
 })
 
-EspSection:AddDropdown("ESPModes", {
-    Title = "Chế độ ESP",
-    Items = {"Boxes", "Highlight"},
-    Default = 1,
-    Callback = function(selected)
-        ESP.Mode = selected
-    end
-})
-
 EspSection:AddColorPicker("ESPColor", {
     Title = "Màu ESP",
     Default = ESP.Color,
