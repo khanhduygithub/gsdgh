@@ -683,17 +683,20 @@ EspSection:AddDropdown("HPPosition", {
 })
 
 -- ========== CÁC TAB KHÁC ==========
--- Thêm Section (bắt buộc)
-local TeleportSection = TeleportTab:AddSection({
-    Title = "Vị Trí",
-    Description = "Chọn điểm dịch chuyển"
-})
-
--- Button đơn giản nhất (không callback phức tạp)
-TeleportSection:AddButton({
-    Title = "ĐIỂM CUỐI",
-    Description = "Dịch chuyển đến (-346, -69, -49060)",
-    Callback = function()
-        print("Đã nhấn nút!") -- Kiểm tra console khi nhấn
+local autoTeleport = false
+TeleportTab:AddToggle("AutoEndToggle", {
+    Title = "Tự động đến cuối game",
+    Description = "Tự động dịch chuyển khi vào game",
+    Default = false,
+    Callback = function(state)
+        autoTeleport = state
+        if state then
+            game.Players.LocalPlayer.Character:PivotTo(CFrame.new(-346, -69, -49060))
+            Fluent:Notify({
+                Title = "Đã kích hoạt",
+                Content = "Tự động dịch chuyển khi respawn!",
+                Duration = 3
+            })
+        end
     end
 })
