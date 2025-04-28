@@ -683,38 +683,13 @@ EspSection:AddDropdown("HPPosition", {
 })
 
 -- ========== CÁC TAB KHÁC ==========
-TeleportTab:AddSection({ Title = "Teleport Locations" })
-
 TeleportTab:AddButton({
     Title = "Teleport The End",
     Description = "Dịch Chuyển Đến Cuối game",
     Callback = function()
-        Fluent:Notify({
-            Title = "Thông báo",
-            Content = "Đang dịch chuyển đến cuối game...",
-            Duration = 3
-        })
-        
         local player = game.Players.LocalPlayer
         if player.Character then
             player.Character:PivotTo(CFrame.new(-346, -69, -49060))
-            Fluent:Notify({
-                Title = "Thành công",
-                Content = "Đã dịch chuyển đến cuối game!",
-                Duration = 5
-            })
-        else
-            Fluent:Notify({
-                Title = "Lỗi",
-                Content = "Không tìm thấy nhân vật!",
-                Duration = 5,
-                Type = "error"
-            })
         end
     end
-})
-
-TeleportTab:AddParagraph({
-    Title = "Thông báo",
-    Content = "Các điểm teleport khác sẽ được thêm sau"
 })
