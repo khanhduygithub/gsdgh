@@ -683,9 +683,10 @@ EspSection:AddDropdown("HPPosition", {
 })
 
 -- ========== CÁC TAB KHÁC ==========
+-- Thêm button TRỰC TIẾP vào Tab (không cần Section)
 TeleportTab:AddButton({
-    Title = "Teleport The End",
-    Description = "Dịch Chuyển Đến Cuối game",
+    Title = "Dịch Chuyển Cuối Game",
+    Description = "Teleport đến vị trí kết thúc",
     Callback = function()
         local player = game.Players.LocalPlayer
         if player.Character then
