@@ -1,30 +1,29 @@
---// KhanhDuy Custom Menu
+--// KhanhDuy Custom Menu Mini Version
 
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
 -- Tạo ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KhanhDuyHub"
+ScreenGui.Name = "KhanhDuyHubMini"
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Tạo Frame chính
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 500, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 400, 0, 250) -- nhỏ hơn
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = true
 MainFrame.Parent = ScreenGui
 
--- UICorner bo góc
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 8)
 UICorner.Parent = MainFrame
 
 -- Tiêu đề
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundTransparency = 1
 Title.Text = "KhanhDuy Hub - DeadRails"
 Title.TextColor3 = Color3.fromRGB(0, 170, 255)
@@ -32,25 +31,10 @@ Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.Parent = MainFrame
 
--- Nút mở/đóng menu (ghi tên bạn)
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 100, 0, 40)
-ToggleButton.Position = UDim2.new(1, -110, 1, 10)
-ToggleButton.Text = "KhanhDuy"
-ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.TextScaled = true
-ToggleButton.Parent = MainFrame
-
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 8)
-ButtonCorner.Parent = ToggleButton
-
 -- Tabs Container
 local TabsFrame = Instance.new("Frame")
-TabsFrame.Size = UDim2.new(0, 120, 0, 260)
-TabsFrame.Position = UDim2.new(0, 10, 0, 40)
+TabsFrame.Size = UDim2.new(0, 100, 0, 210)
+TabsFrame.Position = UDim2.new(0, 10, 0, 35)
 TabsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 TabsFrame.BorderSizePixel = 0
 TabsFrame.Parent = MainFrame
@@ -61,8 +45,8 @@ TabsCorner.Parent = TabsFrame
 
 -- Nội dung các tab
 local ContentFrame = Instance.new("Frame")
-ContentFrame.Size = UDim2.new(0, 350, 0, 260)
-ContentFrame.Position = UDim2.new(0, 130, 0, 40)
+ContentFrame.Size = UDim2.new(0, 280, 0, 210)
+ContentFrame.Position = UDim2.new(0, 110, 0, 35)
 ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 ContentFrame.BorderSizePixel = 0
 ContentFrame.Parent = MainFrame
@@ -71,13 +55,13 @@ local ContentCorner = Instance.new("UICorner")
 ContentCorner.CornerRadius = UDim.new(0, 6)
 ContentCorner.Parent = ContentFrame
 
--- Các tab: Main, Aim, ESP, Teleport
+-- Các tab
 local Tabs = {"Main", "Aim", "ESP", "Teleport"}
 
-for _, name in ipairs(Tabs) do
+for i, name in ipairs(Tabs) do
     local TabButton = Instance.new("TextButton")
     TabButton.Size = UDim2.new(1, -20, 0, 40)
-    TabButton.Position = UDim2.new(0, 10, 0, 10 + (_-1)*50)
+    TabButton.Position = UDim2.new(0, 10, 0, 10 + (i-1)*50)
     TabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     TabButton.Font = Enum.Font.GothamBold
@@ -90,14 +74,28 @@ for _, name in ipairs(Tabs) do
     TabUICorner.Parent = TabButton
 end
 
--- Nút đóng/mở menu
+-- Nút KhanhDuy đóng/mở menu
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 100, 0, 30)
+ToggleButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+ToggleButton.Text = "KhanhDuy"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextScaled = true
+ToggleButton.Parent = ScreenGui
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.Parent = ToggleButton
+
 local MenuVisible = true
 ToggleButton.MouseButton1Click:Connect(function()
     MenuVisible = not MenuVisible
     MainFrame.Visible = MenuVisible
 end)
 
--- Kéo thả menu
+-- Kéo thả Menu
 local dragging
 local dragInput
 local dragStart
@@ -123,7 +121,7 @@ MainFrame.InputChanged:Connect(function(input)
     end
 end)
 
-game:GetService("UserInputService").InputChanged:Connect(function(input)
+UIS.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         local delta = input.Position - dragStart
         MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
