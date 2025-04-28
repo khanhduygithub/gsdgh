@@ -1,23 +1,21 @@
-local Nova = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/xwarehub.lua"))()
+local NovaX = loadstring(game:HttpGet("URL_RAW_CỦA_NOVA_X"))()
 
-local window = Nova:CreateWindow({
+local window = NovaX:CreateWindow({
     Name = "Premium Menu",
-    MainColor = Color3.fromRGB(0, 150, 255),
-    BackgroundColor = Color3.fromRGB(25, 25, 25),
-    Theme = "Dark"
+    Icon = "rbxassetid://7734053491" -- Icon ID
 })
 
-local mainTab = window:CreateTab("Main")
-local combatTab = window:CreateTab("Combat")
-local visualsTab = window:CreateTab("Visuals")
-local teleportTab = window:CreateTab("Teleport")
+-- Tạo các tab với icon
+local mainTab = window:CreateTab("Main", "rbxassetid://7733765390")
+local combatTab = window:CreateTab("Combat", "rbxassetid://7733921476")
+local visualsTab = window:CreateTab("Visuals", "rbxassetid://7733941276")
+local teleportTab = window:CreateTab("Teleport", "rbxassetid://7734058123")
 
--- Thêm các elements vào tab
+-- Thêm button có icon
 mainTab:AddButton({
-    Name = "Kích hoạt Auto Farm",
+    Name = "Auto Farm",
+    Icon = "rbxassetid://7733697995",
     Callback = function()
         print("Auto Farm activated!")
     end
 })
-
--- Thêm nhiều elements khác tương tự
