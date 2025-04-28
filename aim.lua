@@ -297,10 +297,328 @@ end)
 EspTab:AddSection({ Title = "ESP Settings" })
 TeleportTab:AddSection({ Title = "Teleport Locations" })
 
-EspTab:AddParagraph({
-    Title = "Thông báo",
-    Content = "Chức năng ESP sẽ được thêm sau"
+-- ========== ESP TAB ==========
+local EspSection = EspTab:AddSection("ESP Settings")
+
+-- Cài đặt ESP
+local ESP = {
+    Enabled = false,
+    Mode = "Boxes",  -- Các chế độ: "Boxes", "Highlight"
+    Color = Color3.fromRGB(255, 0, 0),  -- Màu sắc của ESP
+    MaxDistance = 500,  -- Khoảng cách tối đa để hiển thị ESP
+    ShowHP = true,
+    ShowHPText = true,
+    ShowName = true,
+    ShowDistance = true,
+    IgnoreDead = true,  -- Bỏ qua các NPC đã chết
+    HPPosition = "Horizontal",  -- Vị trí thanh máu: "Horizontal" hoặc "Vertical"
+    Boxes = {},
+    Highlights = {},
+    Texts = {},
+}
+
+-- Thêm các control vào UI để cấu hình ESP
+EspSection:AddToggle("ESPEnabled", {
+    Title = "Bật ESP",
+    Description = "Hiển thị ESP cho các NPC",
+    Default = false,
+    Callback = function(state)
+        ESP.Enabled = state
+        ToggleESP(state)
+    end
 })
+
+EspSection:AddDropdown("ESPModes", {
+    Title = "Chế độ ESP",
+    Items = {"Boxes", "Highlight"},
+    Default = 1,
+    Callback = function(selected)
+        ESP.Mode = selected
+    end
+})
+
+EspSection:AddColorPicker("ESPColor", {
+    Title = "Màu ESP",
+    Default = ESP.Color,
+    Callback = function(color)
+        ESP.Color = color
+    end
+})
+
+EspSection:AddSlider("ESPMaxDistance", {
+    Title = "Khoảng cách ESP",
+    Description = "Điều chỉnh khoảng cách tối đa để hiển thị ESP",
+    Default = ESP.MaxDistance,
+    Min = 50,
+    Max = 1000,
+    Rounding = 1,
+    Callback = function(value)
+        ESP.MaxDistance = value
+    end
+})
+
+EspSection:AddToggle("ShowHP", {
+    Title = "Hiển thị thanh máu",
+    Description = "Hiển thị thanh máu của NPC",
+    Default = true,
+    Callback = function(state)
+        ESP.ShowHP = state
+    end
+})
+
+EspSection:AddToggle("ShowHPText", {
+    Title = "Hiển thị số máu",
+    Description = "Hiển thị số máu của NPC",
+    Default = true,
+    Callback = function(state)
+        ESP.ShowHPText = state
+    end
+})
+
+EspSection:AddToggle("ShowName", {
+    Title = "Hiển thị tên",
+    Description = "Hiển thị tên của NPC",
+    Default = true,
+    Callback = function(state)
+        ESP.ShowName = state
+    end
+})
+
+EspSection:AddToggle("ShowDistance", {
+    Title = "Hiển thị khoảng cách",
+    Description = "Hiển thị khoảng cách đến NPC",
+    Default = true,
+    Callback = function(state)
+        ESP.ShowDistance = state
+    end
+})
+
+-- Cập nhật ESP
+local function CalculateCharacterSize(character)
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return Vector3.new(0, 0, 0) end
+    
+    local root = character.HumanoidRootPart
+    local cf = root.CFrame
+    local size = root.Size
+    
+    return Vector3.new(size.X * 2, size.Y * 3, size.Z * 2)
+end
+
+local function CreateESP(character)
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = ESP.Color
+    box.Thickness = 2
+    box.Filled = false
+    box.Transparency = 1
+    box.ZIndex = 1
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Parent = CoreGui
+    highlight.Adornee = character
+    highlight.Enabled = false
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.FillColor = ESP.Color
+    highlight.FillTransparency = 0.5
+    highlight.OutlineColor = ESP.Color
+    highlight.OutlineTransparency = 0
+    
+    local hpBar = Drawing.new("Line")
+    hpBar.Visible = false
+    hpBar.Color = Color3.fromRGB(0, 255, 0)
+    hpBar.Thickness = 2
+    hpBar.ZIndex = 2
+    
+    local hpText = Drawing.new("Text")
+    hpText.Visible = false
+    hpText.Color = Color3.fromRGB(255, 255, 255)
+    hpText.Size = 13
+    hpText.Center = true
+    hpText.Outline = true
+    hpText.ZIndex = 3
+    
+    local nameText = Drawing.new("Text")
+    nameText.Visible = false
+    nameText.Color = Color3.fromRGB(255, 255, 255)
+    nameText.Size = 14
+    nameText.Center = true
+    nameText.Outline = true
+    nameText.ZIndex = 3
+    
+    local distText = Drawing.new("Text")
+    distText.Visible = false
+    distText.Color = Color3.fromRGB(255, 255, 255)
+    distText.Size = 12
+    distText.Center = true
+    distText.Outline = true
+    distText.ZIndex = 3
+    
+    ESP.Boxes[character] = box
+    ESP.Highlights[character] = highlight
+    ESP.Texts[character] = {
+        hpBar = hpBar,
+        hpText = hpText,
+        nameText = nameText,
+        distText = distText
+    }
+end
+
+local function UpdateESP()
+    if not ESP.Enabled then return end
+    
+    local cameraPos = Camera.CFrame.Position
+    
+    for character, box in pairs(ESP.Boxes) do
+        if character and character.Parent and character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = character.HumanoidRootPart
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            
+            if ESP.IgnoreDead and humanoid and humanoid.Health <= 0 then
+                box.Visible = false
+                if ESP.Highlights[character] then
+                    ESP.Highlights[character].Enabled = false
+                end
+                local texts = ESP.Texts[character]
+                if texts then
+                    texts.hpBar.Visible = false
+                    texts.hpText.Visible = false
+                    texts.nameText.Visible = false
+                    texts.distText.Visible = false
+                end
+                continue
+            end
+            
+            local position, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+            local distance = (rootPart.Position - cameraPos).Magnitude
+            
+            if onScreen and distance <= ESP.MaxDistance then
+                local size = CalculateCharacterSize(character)
+                local scale = 1000 / position.Z
+                local width = math.max(20, size.X * scale)
+                local height = math.max(30, size.Y * scale)
+                
+                box.Size = Vector2.new(width, height)
+                box.Position = Vector2.new(position.X - width/2, position.Y - height/2)
+                box.Visible = ESP.Mode == "Boxes"
+                box.Color = ESP.Color
+                
+                local highlight = ESP.Highlights[character]
+                if highlight then
+                    highlight.Enabled = ESP.Mode == "Highlight"
+                    highlight.Adornee = character
+                    highlight.FillColor = ESP.Color
+                    highlight.OutlineColor = ESP.Color
+                    highlight.FillTransparency = 0.5
+                    highlight.OutlineTransparency = 0
+                end
+                
+                local texts = ESP.Texts[character]
+                if texts then
+                    if ESP.ShowHP and humanoid then
+                        local hpPercent = humanoid.Health / humanoid.MaxHealth
+                        local barLength = width * hpPercent
+                        
+                        if ESP.HPPosition == "Horizontal" then
+                            texts.hpBar.From = Vector2.new(position.X - width/2, position.Y - height/2 - 10)
+                            texts.hpBar.To = Vector2.new(position.X - width/2 + barLength, position.Y - height/2 - 10)
+                        else
+                            texts.hpBar.From = Vector2.new(position.X - width/2 - 10, position.Y + height/2)
+                            texts.hpBar.To = Vector2.new(position.X - width/2 - 10, position.Y + height/2 - height * hpPercent)
+                        end
+                        
+                        texts.hpBar.Color = Color3.fromHSV(hpPercent * 0.3, 1, 1)
+                        texts.hpBar.Visible = true
+                    else
+                        texts.hpBar.Visible = false
+                    end
+                    
+                    if ESP.ShowHPText and humanoid then
+                        texts.hpText.Text = string.format("%d/%d", math.floor(humanoid.Health), math.floor(humanoid.MaxHealth))
+                        texts.hpText.Position = Vector2.new(position.X, position.Y - height/2 - 25)
+                        texts.hpText.Visible = true
+                    else
+                        texts.hpText.Visible = false
+                    end
+                    
+                    if ESP.ShowName then
+                        texts.nameText.Text = character.Name
+                        texts.nameText.Position = Vector2.new(position.X, position.Y + height/2 + 5)
+                        texts.nameText.Visible = true
+                    else
+                        texts.nameText.Visible = false
+                    end
+                    
+                    if ESP.ShowDistance then
+                        texts.distText.Text = string.format("%d studs", math.floor(distance))
+                        texts.distText.Position = Vector2.new(position.X, position.Y + height/2 + 20)
+                        texts.distText.Visible = true
+                    else
+                        texts.distText.Visible = false
+                    end
+                end
+            else
+                box.Visible = false
+                if ESP.Highlights[character] then
+                    ESP.Highlights[character].Enabled = false
+                end
+                
+                local texts = ESP.Texts[character]
+                if texts then
+                    texts.hpBar.Visible = false
+                    texts.hpText.Visible = false
+                    texts.nameText.Visible = false
+                    texts.distText.Visible = false
+                end
+            end
+        else
+            box.Visible = false
+            box:Remove()
+            ESP.Boxes[character] = nil
+            
+            if ESP.Highlights[character] then
+                ESP.Highlights[character]:Destroy()
+                ESP.Highlights[character] = nil
+            end
+            
+            local texts = ESP.Texts[character]
+            if texts then
+                texts.hpBar:Remove()
+                texts.hpText:Remove()
+                texts.nameText:Remove()
+                texts.distText:Remove()
+                ESP.Texts[character] = nil
+            end
+        end
+    end
+end
+
+-- Tắt hoặc bật ESP
+local function ToggleESP(enabled)
+    ESP.Enabled = enabled
+    if not enabled then
+        ClearESP()
+        if ESPConnection then
+            ESPConnection:Disconnect()
+            ESPConnection = nil
+        end
+    else
+        for _, model in ipairs(Workspace:GetChildren()) do
+            if model:IsA("Model") and model ~= MyCharacter and model:FindFirstChildOfClass("Humanoid") then
+                CreateESP(model)
+            end
+        end
+        
+        if not ESPConnection then
+            ESPConnection = Workspace.ChildAdded:Connect(function(child)
+                if ESP.Enabled and child:IsA("Model") and child ~= MyCharacter and child:FindFirstChildOfClass("Humanoid") then
+                    CreateESP(child)
+                end
+            end)
+        end
+    end
+end
 
 TeleportTab:AddParagraph({
     Title = "Thông báo",
