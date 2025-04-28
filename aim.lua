@@ -14,6 +14,29 @@ local Window = Fluent:CreateWindow({
     IsDraggable = true
 })
 
+local function CreateHeart() local heart = Instance.new("ImageLabel") heart.Size = UDim2.new(0, 24, 0, 24) heart.Position = UDim2.new(math.random(), 0, 1, 0) heart.BackgroundTransparency = 1 heart.Image = "rbxassetid://6031075938" -- Hình trái tim heart.ImageTransparency = 0 heart.Parent = HeartFolder
+
+-- Bay lên và mờ dần
+local tweenService = game:GetService("TweenService")
+local goal = {}
+goal.Position = UDim2.new(heart.Position.X.Scale, 0, 0, 0)
+goal.ImageTransparency = 1
+
+local tweenInfo = TweenInfo.new(
+    math.random(3,5), -- thời gian bay
+    Enum.EasingStyle.Sine,
+    Enum.EasingDirection.Out
+)
+
+local tween = tweenService:Create(heart, tweenInfo, goal)
+tween:Play()
+
+tween.Completed:Connect(function()
+    heart:Destroy()
+end)
+
+end
+
 -- ========== CÁC TAB ==========
 local MainTab = Window:AddTab({ Title = "Main", Icon = "home" })
 local AimbotTab = Window:AddTab({ Title = "Aimbot", Icon = "crosshair" })
@@ -683,20 +706,13 @@ EspSection:AddDropdown("HPPosition", {
 })
 
 -- ========== CÁC TAB KHÁC ==========
-local autoTeleport = false
-TeleportTab:AddToggle("AutoEndToggle", {
-    Title = "Tự động đến cuối game",
-    Description = "Tự động dịch chuyển khi vào game",
-    Default = false,
-    Callback = function(state)
-        autoTeleport = state
-        if state then
-            game.Players.LocalPlayer.Character:PivotTo(CFrame.new(-346, -69, -49060))
-            Fluent:Notify({
-                Title = "Đã kích hoạt",
-                Content = "Tự động dịch chuyển khi respawn!",
-                Duration = 3
-            })
+
+TeleportTab:AddButton({
+    Name = "Dịch Chuyển Cuối Game",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        if player and player.Character then
+            player.Character:PivotTo(CFrame.new(-346, -69, -49060))
         end
-    end
+    end,
 })
