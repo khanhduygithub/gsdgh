@@ -63,4 +63,35 @@ local Mouse = LocalPlayer:GetMouse()
 RunService.RenderStepped:Connect(function()
     if getgenv().AimbotEnabled then
         local closestPlayer = nil
-        local shortestDistance = math
+        local shortestDistance = math.huge
+        for i, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
+                local pos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(v.Character.Head.Position)
+                if onScreen then
+                    local dist = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                    if dist < shortestDistance then
+                        shortestDistance = dist
+                        closestPlayer = v
+                    end
+                end
+            end
+        end
+        if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, closestPlayer.Character.Head.Position)
+        end
+    end
+end)
+
+-- Tab 3: ESP
+local ESPTab = Window:CreateTab("ESP")
+-- (Bạn tự thêm ESP vào đây sau)
+
+-- Tab 4: Teleport
+local TeleportTab = Window:CreateTab("Teleport")
+
+TeleportTab:CreateButton("Teleport to Spawn", function()
+    local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.CFrame = CFrame.new(Vector3.new(0, 10, 0))
+    end
+end)
