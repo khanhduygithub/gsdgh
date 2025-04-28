@@ -683,27 +683,17 @@ EspSection:AddDropdown("HPPosition", {
 })
 
 -- ========== CÁC TAB KHÁC ==========
--- Thêm Section trước
+-- Thêm Section (bắt buộc)
 local TeleportSection = TeleportTab:AddSection({
-    Title = "Cổng Dịch Chuyển",
-    Description = "Chọn điểm đến"
+    Title = "Vị Trí",
+    Description = "Chọn điểm dịch chuyển"
 })
 
--- Thêm button vào Section
+-- Button đơn giản nhất (không callback phức tạp)
 TeleportSection:AddButton({
-    Title = "Điểm Cuối",
-    Description = "Dịch chuyển đến khu vực cuối cùng",
+    Title = "ĐIỂM CUỐI",
+    Description = "Dịch chuyển đến (-346, -69, -49060)",
     Callback = function()
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local hrp = character:WaitForChild("HumanoidRootPart")
-        
-        -- Teleport + thông báo
-        hrp.CFrame = CFrame.new(-346, -69, -49060)
-        Fluent:Notify({
-            Title = "Thành công!",
-            Content = "Đã đến khu vực cuối game",
-            Duration = 3
-        })
+        print("Đã nhấn nút!") -- Kiểm tra console khi nhấn
     end
 })
