@@ -1,27 +1,26 @@
---// KhanhDuy Custom Menu Mini Version
+--// KhanhDuy Hub - Mini Menu Fixed Version
 
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
--- Tạo ScreenGui
+-- ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KhanhDuyHubMini"
+ScreenGui.Name = "KhanhDuyHub"
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
 
--- Tạo Frame chính
+-- Main Menu
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 400, 0, 250) -- nhỏ hơn
+MainFrame.Size = UDim2.new(0, 400, 0, 250)
 MainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 MainFrame.BorderSizePixel = 0
-MainFrame.Visible = true
 MainFrame.Parent = ScreenGui
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = MainFrame
+local MainCorner = Instance.new("UICorner", MainFrame)
+MainCorner.CornerRadius = UDim.new(0, 8)
 
--- Tiêu đề
+-- Title
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundTransparency = 1
@@ -31,7 +30,7 @@ Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.Parent = MainFrame
 
--- Tabs Container
+-- Tabs Frame
 local TabsFrame = Instance.new("Frame")
 TabsFrame.Size = UDim2.new(0, 100, 0, 210)
 TabsFrame.Position = UDim2.new(0, 10, 0, 35)
@@ -39,11 +38,10 @@ TabsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 TabsFrame.BorderSizePixel = 0
 TabsFrame.Parent = MainFrame
 
-local TabsCorner = Instance.new("UICorner")
+local TabsCorner = Instance.new("UICorner", TabsFrame)
 TabsCorner.CornerRadius = UDim.new(0, 6)
-TabsCorner.Parent = TabsFrame
 
--- Nội dung các tab
+-- Content Frame
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Size = UDim2.new(0, 280, 0, 210)
 ContentFrame.Position = UDim2.new(0, 110, 0, 35)
@@ -51,13 +49,11 @@ ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 ContentFrame.BorderSizePixel = 0
 ContentFrame.Parent = MainFrame
 
-local ContentCorner = Instance.new("UICorner")
+local ContentCorner = Instance.new("UICorner", ContentFrame)
 ContentCorner.CornerRadius = UDim.new(0, 6)
-ContentCorner.Parent = ContentFrame
 
--- Các tab
+-- Tabs
 local Tabs = {"Main", "Aim", "ESP", "Teleport"}
-
 for i, name in ipairs(Tabs) do
     local TabButton = Instance.new("TextButton")
     TabButton.Size = UDim2.new(1, -20, 0, 40)
@@ -69,12 +65,11 @@ for i, name in ipairs(Tabs) do
     TabButton.TextScaled = true
     TabButton.Parent = TabsFrame
 
-    local TabUICorner = Instance.new("UICorner")
+    local TabUICorner = Instance.new("UICorner", TabButton)
     TabUICorner.CornerRadius = UDim.new(0, 6)
-    TabUICorner.Parent = TabButton
 end
 
--- Nút KhanhDuy đóng/mở menu
+-- Toggle Button
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Size = UDim2.new(0, 100, 0, 30)
 ToggleButton.Position = UDim2.new(0, 10, 0, 10)
@@ -85,21 +80,18 @@ ToggleButton.Font = Enum.Font.GothamBold
 ToggleButton.TextScaled = true
 ToggleButton.Parent = ScreenGui
 
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 8)
-ButtonCorner.Parent = ToggleButton
+local ToggleCorner = Instance.new("UICorner", ToggleButton)
+ToggleCorner.CornerRadius = UDim.new(0, 8)
 
+-- Đóng/mở MainFrame
 local MenuVisible = true
 ToggleButton.MouseButton1Click:Connect(function()
     MenuVisible = not MenuVisible
     MainFrame.Visible = MenuVisible
 end)
 
--- Kéo thả Menu
-local dragging
-local dragInput
-local dragStart
-local startPos
+-- Kéo thả MainFrame
+local dragging, dragInput, dragStart, startPos
 
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
