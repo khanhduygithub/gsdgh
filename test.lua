@@ -1,5 +1,5 @@
 -- Load DrRay UI Library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AZYsGithub/DrRay-UI-Library/refs/heads/main/DrRay.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/khanhduygithub/gsdgh/refs/heads/main/DrRayLib.lua"))()
 
 -- Tạo cửa sổ chính
 local Window = Library:Load("My Script GUI", "Default")
