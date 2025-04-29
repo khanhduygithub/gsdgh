@@ -1,52 +1,74 @@
-local player = game.Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
+--// Bonds Farm V1.5
 
--- GUI setup
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 200, 0, 300)
-frame.Position = UDim2.new(0, 10, 0, 10)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+local Cooldown = 0.1
 
--- Button creation function
-local function createButton(text, yPos, callback)
-	local btn = Instance.new("TextButton", frame)
-	btn.Size = UDim2.new(1, 0, 0, 40)
-	btn.Position = UDim2.new(0, 0, 0, yPos)
-	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-	btn.MouseButton1Click:Connect(callback)
-	return btn
-end
+local TrackCount = 1
+local BondCount = 0
+local TrackPassed = false
+local FoundLobby = false
 
--- Auto Bonds logic
-local farming = false
-createButton("Auto Bonds", 0, function(btn)
-	farming = not farming
-	btn.Text = farming and "Stop Auto Bonds" or "Auto Bonds"
-	while farming do
-		for _, bond in pairs(workspace:GetDescendants()) do
-			if bond:IsA("Part") and bond.Name == "Bond" then
-				char:WaitForChild("HumanoidRootPart").CFrame = bond.CFrame + Vector3.new(0, 5, 0)
-				task.wait(0.15)
-			end
-		end
-		task.wait(1)
-	end
-end)
+if game.PlaceId == 116495829188952 then
 
--- Teleport locations
-local locations = {
-	["Station"] = Vector3.new(100, 10, 500),
-	["Tunnel"] = Vector3.new(-200, 15, 400),
-	["Bridge"] = Vector3.new(300, 25, -150)
-}
+    local CreateParty = game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("CreatePartyClient")
+    local HRP = game.Players.LocalPlayer.Character.HumanoidRootPart
 
-local i = 1
-for name, pos in pairs(locations) do
-	createButton("TP: "..name, 40 * i, function()
-		char:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(pos)
-	end)
-	i += 1
+    while task.wait(Cooldown) do
+        if FoundLobby == false then
+            print("Finding Lobby...")
+            for i,v in pairs(game:GetService("Workspace").TeleportZones:GetChildren()) do
+                if v.Name == "TeleportZone" and v.BillboardGui.StateLabel.Text == "Waiting for players..." then
+                    print("Lobby Found!")
+                    HRP.CFrame = v.ZoneContainer.CFrame
+                    FoundLobby = true
+                    task.wait(1)
+                    CreateParty:FireServer({["maxPlayers"] = 1})
+                end
+            end
+        end
+    end
+
+elseif game.PlaceId == 70876832253163 then
+
+    local StartingTrack = game:GetService("Workspace").RailSegments:FindFirstChild("RailSegment")
+    local CollectBond = game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("ActivateObjectClient")
+    local Items = game:GetService("Workspace").RuntimeItems
+    local HRP = game.Players.LocalPlayer.Character.HumanoidRootPart
+
+    HRP.Anchored = true
+
+    while task.wait(Cooldown) do
+    if TrackPassed == false then
+        print("Teleporting to track", TrackCount)
+        TrackPassed = true
+    end
+    HRP.CFrame = StartingTrack.Guide.CFrame + Vector3.new(0,250,0)
+    if StartingTrack.NextTrack.Value ~= nil then
+        StartingTrack = StartingTrack.NextTrack.Value
+        TrackCount += 1
+    else
+        game:GetService("TeleportService"):Teleport(116495829188952, game:GetService("Players").LocalPlayer)
+    end
+    repeat
+        for i,v in pairs(Items:GetChildren()) do
+            if v.Name == "Bond" or v.Name == "BondCalculated" then
+                spawn(function()
+                    for i = 1, 1000 do
+                        pcall(function()
+                            v.Part.CFrame = HRP.CFrame
+                        end)
+                    end
+                    CollectBond:FireServer(v)
+                end)
+                if v.Name == "Bond" then
+                    BondCount += 1
+                    print("Got", BondCount, "Bonds")
+                    v.Name = "BondCalculated"
+                end
+            end
+        end
+        task.wait()
+    until Items:FindFirstChild("Bond") == nil
+    TrackPassed = false
+    end
+
 end
