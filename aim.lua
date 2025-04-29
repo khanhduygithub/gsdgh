@@ -47,44 +47,7 @@ local TeleportTab = Window:AddTab({ Title = "Teleport", Icon = "map-pin" })
 local MainSection = MainTab:AddSection("Auto Features")
 
 -- Auto Bond
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
 
-local HRP = Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-local Items = Workspace:WaitForChild("RuntimeItems")
-local CollectBond = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("ActivateObjectClient")
-local autoBondRunning = false
-local bondConnection
-
-MainTab:AddButton({
-    Title = "Auto Bonds (80 in 2m)",
-    Description = "Tự động thu thập bonds rất nhanh",
-    Callback = function()
-        autoBondRunning = not autoBondRunning
-
-        if autoBondRunning then
-            Fluent:Notify({ Title = "Auto Bonds", Content = "Đang bật...", Duration = 3 })
-
-            bondConnection = task.spawn(function()
-                while autoBondRunning do
-                    for _, v in pairs(Items:GetChildren()) do
-                        if v.Name == "Bond" then
-                            pcall(function()
-                                v.Part.CFrame = HRP.CFrame
-                            end)
-                            CollectBond:FireServer(v)
-                            v.Name = "BondCollected"
-                        end
-                    end
-                    task.wait(0.1)
-                end
-            end)
-        else
-            Fluent:Notify({ Title = "Auto Bonds", Content = "Đã tắt", Duration = 3 })
-        end
-    end
-})
 
 -- Fullbright
 local fullbrightEnabled = false
